@@ -1,0 +1,2663 @@
+# 07 — Tính Năng Mở Rộng & Các Màn Hình Bổ Sung
+
+> **Dành cho AI Agent:** Tài liệu này bổ sung các màn hình và tính năng còn thiếu cho hệ thống CinemaX.
+> Tất cả View tuân thủ Bootstrap 5.3 Dark Mode, có hiệu ứng animation nâng cao.
+> Đọc kết hợp với `06_UI_and_Views.md` và `frontend_skills.md`.
+
+---
+
+## 📋 Tổng quan — Các màn hình hiện có vs. cần bổ sung
+
+### ✅ Đã có (8 màn hình)
+
+| # | Màn hình | File View |
+|---|----------|-----------|
+| 1 | Trang chủ (Hero + Movie Cards) | `views/home/index.php` |
+| 2 | Danh sách phim (filter/search) | `views/movie/index.php` |
+| 3 | Chi tiết phim + suất chiếu | `views/movie/detail.php` |
+| 4 | Sơ đồ chọn ghế (Seat Map) | `views/booking/seat_map.php` |
+| 5 | Thanh toán | `views/payment/index.php` |
+| 6 | Thanh toán thành công | `views/payment/success.php` |
+| 7 | Đăng nhập | `views/auth/login.php` |
+| 8 | Đăng ký | `views/auth/register.php` |
+
+### 🆕 Cần bổ sung (15 màn hình mới)
+
+| # | Màn hình | File View | Mức ưu tiên |
+|---|----------|-----------|-------------|
+| 1 | **Hệ thống rạp & chi nhánh** | `views/cinemas/index.php` | 🔴 Cao |
+| 2 | **Chi tiết rạp (địa chỉ, bản đồ)** | `views/cinemas/detail.php` | 🔴 Cao |
+| 3 | **Hồ sơ khách hàng** | `views/profile/index.php` | 🔴 Cao |
+| 4 | **Chỉnh sửa hồ sơ** | `views/profile/edit.php` | 🔴 Cao |
+| 5 | **Chi tiết vé + Mã QR** | `views/movie/ticket_detail.php` | 🔴 Cao |
+| 6 | **Lịch sử giao dịch** | `views/profile/transactions.php` | 🟡 TB |
+| 7 | **Trang tìm kiếm nâng cao** | `views/search/index.php` | 🟡 TB |
+| 8 | **Trang Khuyến mãi / Ưu đãi** | `views/promotions/index.php` | 🟡 TB |
+| 9 | **Chi tiết khuyến mãi** | `views/promotions/detail.php` | 🟡 TB |
+| 10 | **Trang Tin tức / Blog phim** | `views/news/index.php` | 🟢 Thấp |
+| 11 | **Đổi mật khẩu** | `views/profile/change_password.php` | 🟡 TB |
+| 12 | **Quên mật khẩu** | `views/auth/forgot_password.php` | 🟡 TB |
+| 13 | **Trang Liên hệ / Hỗ trợ** | `views/contact/index.php` | 🟢 Thấp |
+| 14 | **Trang 404 Not Found** | `views/errors/404.php` | 🟡 TB |
+| 15 | **Trang 500 Server Error** | `views/errors/500.php` | 🟢 Thấp |
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 1 — Hệ thống Rạp & Chi Nhánh
+## ═══════════════════════════════════════════
+
+### 1.1 Database — Bảng `cinemas` (thêm mới)
+
+```sql
+-- migrations/009_create_cinemas.sql
+
+CREATE TABLE cinemas (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(200)  NOT NULL,          -- 'CinemaX Quận 1'
+    slug            VARCHAR(200)  NOT NULL,          -- 'cinemax-quan-1' (URL-friendly)
+    province        VARCHAR(100)  NOT NULL,          -- 'TP. Hồ Chí Minh'
+    district        VARCHAR(100)  NOT NULL,          -- 'Quận 1'
+    address         VARCHAR(500)  NOT NULL,          -- '123 Nguyễn Huệ, P.Bến Nghé'
+    phone           VARCHAR(20),                     -- '028-1234-5678'
+    email           VARCHAR(256),                    -- 'quan1@cinemax.vn'
+    latitude        DECIMAL(10, 8),                  -- 10.77592000 (Google Maps)
+    longitude       DECIMAL(11, 8),                  -- 106.70088000
+    image_url       VARCHAR(512),                    -- Ảnh đại diện rạp
+    opening_hours   VARCHAR(100)  DEFAULT '08:00 - 23:30',
+    description     TEXT,
+    facilities      TEXT[],                          -- ARRAY['IMAX','4DX','Dolby Atmos','Parking']
+    is_active       BOOLEAN       NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMP     NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX ux_cinemas_slug ON cinemas(slug);
+CREATE INDEX ix_cinemas_province ON cinemas(province);
+CREATE INDEX ix_cinemas_active ON cinemas(is_active) WHERE is_active = TRUE;
+```
+
+### 1.2 Liên kết `rooms` → `cinemas`
+
+```sql
+-- migrations/010_add_cinema_id_to_rooms.sql
+
+ALTER TABLE rooms
+    ADD COLUMN cinema_id INT REFERENCES cinemas(id) ON DELETE SET NULL;
+
+CREATE INDEX ix_rooms_cinema_id ON rooms(cinema_id);
+```
+
+### 1.3 Dữ liệu mẫu (Seed)
+
+```sql
+-- migrations/011_seed_cinemas.sql
+
+INSERT INTO cinemas (name, slug, province, district, address, phone, latitude, longitude, facilities) VALUES
+('CinemaX Nguyễn Huệ',     'cinemax-nguyen-hue',     'TP. Hồ Chí Minh', 'Quận 1',       '123 Nguyễn Huệ, P.Bến Nghé, Q.1',        '028-3821-1234', 10.77592000, 106.70088000, ARRAY['IMAX','Dolby Atmos','Parking','F&B']),
+('CinemaX Vincom Đồng Khởi','cinemax-vincom-dong-khoi','TP. Hồ Chí Minh', 'Quận 1',       'Tầng 5, Vincom Center, 72 Lê Thánh Tôn',  '028-3821-5678', 10.77820000, 106.70340000, ARRAY['IMAX','4DX','Sweetbox','Parking']),
+('CinemaX Landmark 81',     'cinemax-landmark-81',     'TP. Hồ Chí Minh', 'Bình Thạnh',   'Tầng 3, Landmark 81, 208 Nguyễn Hữu Cảnh','028-3512-9999', 10.79430000, 106.72190000, ARRAY['IMAX','Dolby Atmos','ScreenX','VIP Lounge']),
+('CinemaX Aeon Mall Tân Phú','cinemax-aeon-tan-phu',   'TP. Hồ Chí Minh', 'Tân Phú',      'Tầng 3, Aeon Mall, 30 Bờ Bao Tân Thắng',  '028-3815-4567', 10.80150000, 106.61890000, ARRAY['4DX','Sweetbox','Parking','F&B']),
+('CinemaX Times City Hà Nội','cinemax-times-city-hn',  'Hà Nội',          'Hai Bà Trưng',  'Tầng 4, Times City, 458 Minh Khai',        '024-3974-1234', 20.99510000, 105.86830000, ARRAY['IMAX','Dolby Atmos','VIP Lounge']),
+('CinemaX Royal City',       'cinemax-royal-city',     'Hà Nội',          'Thanh Xuân',    'Tầng B2, Royal City, 72A Nguyễn Trãi',     '024-3974-5678', 21.00280000, 105.81550000, ARRAY['IMAX','4DX','Sweetbox','Parking']),
+('CinemaX Đà Nẵng',          'cinemax-da-nang',        'Đà Nẵng',         'Hải Châu',     '35 Lê Duẩn, Q.Hải Châu, TP.Đà Nẵng',      '0236-382-1234', 16.06810000, 108.22120000, ARRAY['IMAX','Parking','F&B']),
+('CinemaX Cần Thơ',          'cinemax-can-tho',        'Cần Thơ',         'Ninh Kiều',    'Tầng 3, Vincom Xuân Khánh, Q.Ninh Kiều',   '0292-381-5678', 10.02590000, 105.76860000, ARRAY['Dolby Atmos','Sweetbox','F&B']),
+('CinemaX Hải Phòng',        'cinemax-hai-phong',      'Hải Phòng',       'Hồng Bàng',    'Tầng 4, AEON Mall Lê Chân, Q.Hồng Bàng',   '0225-383-9999', 20.85920000, 106.68850000, ARRAY['IMAX','4DX','Parking']),
+('CinemaX Nha Trang',        'cinemax-nha-trang',      'Khánh Hòa',       'Nha Trang',    '62 Thái Nguyên, P.Phước Tân, TP.Nha Trang', '0258-352-4567', 12.24530000, 109.19200000, ARRAY['Dolby Atmos','Sweetbox','F&B']);
+```
+
+### 1.4 Routes mới
+
+```php
+// Thêm vào config/routes.php
+
+$router->get('/cinemas',              'CinemaController@index');      // Danh sách rạp
+$router->get('/cinemas/{slug}',       'CinemaController@detail');     // Chi tiết rạp
+$router->get('/cinemas/{slug}/showtimes', 'CinemaController@showtimes'); // Lịch chiếu theo rạp
+```
+
+### 1.5 CinemaController
+
+```php
+<?php
+// app/Controllers/CinemaController.php
+
+class CinemaController extends BaseController
+{
+    private ICinemaService $cinemaService;
+
+    public function __construct(Container $container)
+    {
+        parent::__construct($container);
+        $this->cinemaService = $container->make(ICinemaService::class);
+    }
+
+    // GET /cinemas
+    public function index(): void
+    {
+        $province = $_GET['province'] ?? null;
+        $cinemas  = $this->cinemaService->getAll($province);
+        $provinces = $this->cinemaService->getAllProvinces();
+
+        $this->render('cinemas.index', [
+            'cinemas'          => $cinemas,
+            'provinces'        => $provinces,
+            'selectedProvince' => $province,
+            'pageTitle'        => 'Hệ thống rạp CinemaX',
+        ]);
+    }
+
+    // GET /cinemas/{slug}
+    public function detail(string $slug): void
+    {
+        $cinema    = $this->cinemaService->getBySlug($slug);
+        $rooms     = $this->cinemaService->getRoomsByCinema($cinema->id);
+        $showtimes = $this->cinemaService->getTodayShowtimes($cinema->id);
+
+        $this->render('cinemas.detail', [
+            'cinema'    => $cinema,
+            'rooms'     => $rooms,
+            'showtimes' => $showtimes,
+            'pageTitle' => $cinema->name . ' — CinemaX',
+        ]);
+    }
+}
+```
+
+### 1.6 View — Danh sách rạp (`views/cinemas/index.php`)
+
+```php
+<?php
+// views/cinemas/index.php
+?>
+
+<!-- Hero Section -->
+<div class="cinema-hero text-center py-5 mb-5">
+    <h1 class="display-5 fw-bold text-warning mb-3">
+        <i class="bi bi-geo-alt-fill me-2"></i>Hệ Thống Rạp CinemaX
+    </h1>
+    <p class="lead text-light opacity-75">
+        Trải nghiệm điện ảnh đỉnh cao tại <strong class="text-warning"><?= count($cinemas) ?></strong> rạp trên toàn quốc
+    </p>
+</div>
+
+<!-- Bộ lọc tỉnh/thành phố -->
+<div class="province-filter mb-5">
+    <div class="d-flex flex-wrap gap-2 justify-content-center">
+        <a href="/cinemas"
+           class="btn btn-sm <?= !$selectedProvince ? 'btn-warning' : 'btn-outline-secondary' ?> rounded-pill px-4 province-btn">
+            <i class="bi bi-globe me-1"></i>Tất cả
+        </a>
+        <?php foreach ($provinces as $prov): ?>
+            <a href="/cinemas?province=<?= urlencode($prov) ?>"
+               class="btn btn-sm <?= $selectedProvince === $prov ? 'btn-warning' : 'btn-outline-secondary' ?> rounded-pill px-3 province-btn">
+                <?= htmlspecialchars($prov) ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<!-- Danh sách rạp -->
+<div class="row g-4">
+    <?php foreach ($cinemas as $cinema): ?>
+        <div class="col-md-6 col-lg-4">
+            <div class="card cinema-card bg-dark border-0 h-100 overflow-hidden"
+                 onclick="location.href='/cinemas/<?= htmlspecialchars($cinema->slug) ?>'">
+
+                <!-- Ảnh rạp -->
+                <div class="position-relative overflow-hidden" style="height: 200px;">
+                    <img src="<?= htmlspecialchars($cinema->imageUrl ?: '/assets/img/default-cinema.jpg') ?>"
+                         class="w-100 h-100 cinema-img"
+                         alt="<?= htmlspecialchars($cinema->name) ?>"
+                         style="object-fit: cover;">
+                    <!-- Overlay gradient -->
+                    <div class="position-absolute bottom-0 start-0 end-0 p-3"
+                         style="background: linear-gradient(transparent, rgba(0,0,0,0.85));">
+                        <h5 class="text-warning fw-bold mb-0"><?= htmlspecialchars($cinema->name) ?></h5>
+                    </div>
+                    <!-- Badge tỉnh -->
+                    <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2 rounded-pill">
+                        <i class="bi bi-pin-map-fill me-1"></i><?= htmlspecialchars($cinema->province) ?>
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <!-- Địa chỉ -->
+                    <p class="text-secondary small mb-2">
+                        <i class="bi bi-geo-alt me-1 text-danger"></i>
+                        <?= htmlspecialchars($cinema->address) ?>
+                    </p>
+                    <!-- Quận/Huyện -->
+                    <p class="text-secondary small mb-2">
+                        <i class="bi bi-building me-1 text-info"></i>
+                        <?= htmlspecialchars($cinema->district) ?>, <?= htmlspecialchars($cinema->province) ?>
+                    </p>
+                    <!-- SĐT -->
+                    <?php if ($cinema->phone): ?>
+                        <p class="text-secondary small mb-2">
+                            <i class="bi bi-telephone me-1 text-success"></i>
+                            <?= htmlspecialchars($cinema->phone) ?>
+                        </p>
+                    <?php endif; ?>
+                    <!-- Giờ mở cửa -->
+                    <p class="text-secondary small mb-3">
+                        <i class="bi bi-clock me-1 text-warning"></i>
+                        <?= htmlspecialchars($cinema->openingHours) ?>
+                    </p>
+
+                    <!-- Tiện ích (facilities) -->
+                    <div class="d-flex flex-wrap gap-1">
+                        <?php foreach ($cinema->facilities ?? [] as $facility): ?>
+                            <span class="badge facility-badge rounded-pill">
+                                <?= htmlspecialchars($facility) ?>
+                            </span>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-top border-secondary p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="/cinemas/<?= htmlspecialchars($cinema->slug) ?>"
+                           class="btn btn-sm btn-outline-warning rounded-pill">
+                            <i class="bi bi-info-circle me-1"></i>Chi tiết
+                        </a>
+                        <a href="/cinemas/<?= htmlspecialchars($cinema->slug) ?>/showtimes"
+                           class="btn btn-sm btn-warning rounded-pill">
+                            <i class="bi bi-calendar-check me-1"></i>Lịch chiếu
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+</div>
+```
+
+### 1.7 View — Chi tiết rạp (`views/cinemas/detail.php`)
+
+```php
+<?php
+// views/cinemas/detail.php
+?>
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-transparent p-0">
+        <li class="breadcrumb-item"><a href="/" class="text-warning text-decoration-none">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="/cinemas" class="text-warning text-decoration-none">Hệ thống rạp</a></li>
+        <li class="breadcrumb-item active text-secondary"><?= htmlspecialchars($cinema->name) ?></li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Cột trái: Thông tin rạp -->
+    <div class="col-lg-8">
+        <!-- Banner rạp -->
+        <div class="cinema-detail-banner position-relative rounded-4 overflow-hidden mb-4" style="height: 350px;">
+            <img src="<?= htmlspecialchars($cinema->imageUrl ?: '/assets/img/default-cinema.jpg') ?>"
+                 class="w-100 h-100" style="object-fit: cover; filter: brightness(0.6);"
+                 alt="<?= htmlspecialchars($cinema->name) ?>">
+            <div class="position-absolute bottom-0 start-0 p-4 w-100"
+                 style="background: linear-gradient(transparent, rgba(0,0,0,0.9));">
+                <h1 class="text-warning fw-bold display-6 mb-1">
+                    <i class="bi bi-camera-reels me-2"></i><?= htmlspecialchars($cinema->name) ?>
+                </h1>
+                <p class="text-light mb-0">
+                    <i class="bi bi-geo-alt-fill me-1 text-danger"></i>
+                    <?= htmlspecialchars($cinema->address) ?>
+                </p>
+            </div>
+        </div>
+
+        <!-- Thông tin chi tiết -->
+        <div class="card bg-dark border-0 shadow-lg mb-4 cinema-info-card">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-info-circle me-2"></i>Thông tin rạp
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="info-item p-3 rounded-3">
+                            <i class="bi bi-geo-alt-fill text-danger fs-4 mb-2 d-block"></i>
+                            <small class="text-secondary d-block">Địa chỉ</small>
+                            <strong class="text-light"><?= htmlspecialchars($cinema->address) ?></strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="info-item p-3 rounded-3">
+                            <i class="bi bi-building text-info fs-4 mb-2 d-block"></i>
+                            <small class="text-secondary d-block">Khu vực</small>
+                            <strong class="text-light">
+                                <?= htmlspecialchars($cinema->district) ?>, <?= htmlspecialchars($cinema->province) ?>
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="info-item p-3 rounded-3">
+                            <i class="bi bi-telephone-fill text-success fs-4 mb-2 d-block"></i>
+                            <small class="text-secondary d-block">Hotline</small>
+                            <strong class="text-light">
+                                <a href="tel:<?= htmlspecialchars($cinema->phone) ?>" class="text-light text-decoration-none">
+                                    <?= htmlspecialchars($cinema->phone) ?>
+                                </a>
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="info-item p-3 rounded-3">
+                            <i class="bi bi-clock-fill text-warning fs-4 mb-2 d-block"></i>
+                            <small class="text-secondary d-block">Giờ hoạt động</small>
+                            <strong class="text-light"><?= htmlspecialchars($cinema->openingHours) ?></strong>
+                        </div>
+                    </div>
+                    <?php if ($cinema->email): ?>
+                    <div class="col-sm-6">
+                        <div class="info-item p-3 rounded-3">
+                            <i class="bi bi-envelope-fill text-primary fs-4 mb-2 d-block"></i>
+                            <small class="text-secondary d-block">Email</small>
+                            <strong class="text-light">
+                                <a href="mailto:<?= htmlspecialchars($cinema->email) ?>" class="text-light text-decoration-none">
+                                    <?= htmlspecialchars($cinema->email) ?>
+                                </a>
+                            </strong>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Tiện ích -->
+                <h6 class="text-warning mt-4 mb-3">
+                    <i class="bi bi-stars me-1"></i>Tiện ích & Công nghệ
+                </h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <?php foreach ($cinema->facilities ?? [] as $facility): ?>
+                        <span class="badge facility-badge-lg rounded-pill px-3 py-2">
+                            <?php
+                            $icon = match($facility) {
+                                'IMAX'         => 'bi-badge-hd-fill',
+                                '4DX'          => 'bi-badge-4k-fill',
+                                'Dolby Atmos'  => 'bi-volume-up-fill',
+                                'Parking'      => 'bi-p-circle-fill',
+                                'F&B'          => 'bi-cup-straw',
+                                'Sweetbox'     => 'bi-heart-fill',
+                                'VIP Lounge'   => 'bi-star-fill',
+                                'ScreenX'      => 'bi-display',
+                                default        => 'bi-check-circle',
+                            };
+                            ?>
+                            <i class="bi <?= $icon ?> me-1"></i><?= htmlspecialchars($facility) ?>
+                        </span>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bản đồ Google Maps -->
+        <?php if ($cinema->latitude && $cinema->longitude): ?>
+        <div class="card bg-dark border-0 shadow-lg mb-4">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-map me-2"></i>Bản đồ
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <iframe
+                    src="https://maps.google.com/maps?q=<?= $cinema->latitude ?>,<?= $cinema->longitude ?>&z=16&output=embed"
+                    width="100%" height="350"
+                    style="border:0; border-radius: 0 0 12px 12px;"
+                    allowfullscreen loading="lazy">
+                </iframe>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Mô tả rạp -->
+        <?php if ($cinema->description): ?>
+        <div class="card bg-dark border-0 shadow-lg mb-4">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-text-paragraph me-2"></i>Giới thiệu
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-light lh-lg"><?= nl2br(htmlspecialchars($cinema->description)) ?></p>
+            </div>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Cột phải: Danh sách phòng chiếu + Lịch chiếu hôm nay -->
+    <div class="col-lg-4">
+        <!-- Danh sách phòng chiếu -->
+        <div class="card bg-dark border-0 shadow-lg mb-4 sticky-top" style="top: 20px;">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-door-open me-2"></i>Phòng chiếu (<?= count($rooms) ?>)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <?php foreach ($rooms as $room): ?>
+                        <div class="list-group-item bg-transparent border-secondary text-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong><?= htmlspecialchars($room->name) ?></strong>
+                                    <br>
+                                    <small class="text-secondary">
+                                        <?= $room->totalRows * $room->seatsPerRow ?> ghế
+                                        (<?= $room->totalRows ?> hàng × <?= $room->seatsPerRow ?> cột)
+                                    </small>
+                                </div>
+                                <span class="badge bg-warning text-dark rounded-pill">
+                                    <?= htmlspecialchars($room->type ?? 'Standard') ?>
+                                </span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lịch chiếu hôm nay -->
+        <div class="card bg-dark border-0 shadow-lg">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-calendar-event me-2"></i>Lịch chiếu hôm nay
+                </h5>
+            </div>
+            <div class="card-body">
+                <?php if (empty($showtimes)): ?>
+                    <p class="text-secondary text-center py-3">
+                        <i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-50"></i>
+                        Chưa có suất chiếu nào hôm nay
+                    </p>
+                <?php else: ?>
+                    <?php foreach ($showtimes as $showtime): ?>
+                        <div class="showtime-card p-3 rounded-3 mb-2"
+                             onclick="location.href='/booking/<?= $showtime->id ?>'">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="text-light"><?= htmlspecialchars($showtime->movieTitle) ?></strong>
+                                    <div class="text-warning fw-bold fs-5"><?= htmlspecialchars($showtime->startTime) ?></div>
+                                </div>
+                                <span class="badge bg-warning text-dark">
+                                    <?= htmlspecialchars($showtime->roomName) ?>
+                                </span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 2 — Hồ Sơ Khách Hàng Chi Tiết
+## ═══════════════════════════════════════════
+
+### 2.1 Database — Mở rộng bảng `users`
+
+```sql
+-- migrations/012_extend_users_profile.sql
+
+ALTER TABLE users
+    ADD COLUMN full_name     VARCHAR(200),
+    ADD COLUMN phone         VARCHAR(20),
+    ADD COLUMN avatar_url    VARCHAR(512),
+    ADD COLUMN date_of_birth DATE,
+    ADD COLUMN gender        VARCHAR(10) DEFAULT 'other',   -- 'male','female','other'
+    ADD COLUMN city          VARCHAR(100),
+    ADD COLUMN loyalty_points INT NOT NULL DEFAULT 0,
+    ADD COLUMN member_level  VARCHAR(20) NOT NULL DEFAULT 'bronze',  -- 'bronze','silver','gold','diamond'
+    ADD COLUMN total_spent   NUMERIC(12, 0) NOT NULL DEFAULT 0;
+
+ALTER TABLE users
+    ADD CONSTRAINT chk_users_gender CHECK (gender IN ('male', 'female', 'other'));
+ALTER TABLE users
+    ADD CONSTRAINT chk_users_member_level CHECK (member_level IN ('bronze', 'silver', 'gold', 'diamond'));
+```
+
+### 2.2 Routes mới
+
+```php
+// Thêm vào config/routes.php
+
+$router->get('/profile',              'ProfileController@index');         // Hồ sơ
+$router->get('/profile/edit',         'ProfileController@editForm');      // Form chỉnh sửa
+$router->post('/profile/edit',        'ProfileController@update');        // Lưu chỉnh sửa
+$router->get('/profile/transactions', 'ProfileController@transactions'); // Lịch sử GD
+$router->get('/profile/change-password', 'ProfileController@changePasswordForm');
+$router->post('/profile/change-password', 'ProfileController@changePassword');
+```
+
+### 2.3 View — Hồ sơ khách hàng (`views/profile/index.php`)
+
+```php
+<?php
+// views/profile/index.php
+?>
+
+<div class="row g-4">
+    <!-- Cột trái: Thẻ hồ sơ chính -->
+    <div class="col-lg-4">
+        <!-- Profile Card với hiệu ứng glassmorphism -->
+        <div class="card profile-main-card border-0 overflow-hidden">
+            <!-- Background gradient -->
+            <div class="profile-header position-relative text-center py-5"
+                 style="background: linear-gradient(135deg, #0f0f1b 0%, #1a1a3e 50%, #2d1f6e 100%);">
+                <!-- Avatar -->
+                <div class="avatar-wrapper mx-auto mb-3 position-relative">
+                    <img src="<?= htmlspecialchars($user->avatarUrl ?: '/assets/img/default-avatar.png') ?>"
+                         class="rounded-circle border border-3 border-warning avatar-glow"
+                         width="120" height="120"
+                         alt="Avatar"
+                         style="object-fit: cover;">
+                    <!-- Member Level Badge -->
+                    <span class="badge member-badge position-absolute bottom-0 start-50 translate-middle-x
+                                 <?= match($user->memberLevel) {
+                                     'diamond' => 'bg-info',
+                                     'gold'    => 'bg-warning text-dark',
+                                     'silver'  => 'bg-secondary',
+                                     default   => 'bg-danger',
+                                 } ?> rounded-pill px-3">
+                        <i class="bi bi-gem me-1"></i><?= ucfirst($user->memberLevel) ?>
+                    </span>
+                </div>
+
+                <h4 class="text-light fw-bold mb-1">
+                    <?= htmlspecialchars($user->fullName ?: $user->username) ?>
+                </h4>
+                <p class="text-secondary mb-0">
+                    <i class="bi bi-envelope me-1"></i><?= htmlspecialchars($user->email) ?>
+                </p>
+            </div>
+
+            <div class="card-body bg-dark p-4">
+                <!-- Thống kê nhanh -->
+                <div class="row g-3 text-center mb-4">
+                    <div class="col-4">
+                        <div class="stat-mini p-2 rounded-3">
+                            <div class="text-warning fw-bold fs-5"><?= $stats->totalTickets ?></div>
+                            <small class="text-secondary">Vé đã mua</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-mini p-2 rounded-3">
+                            <div class="text-warning fw-bold fs-5"><?= $stats->totalMovies ?></div>
+                            <small class="text-secondary">Phim đã xem</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="stat-mini p-2 rounded-3">
+                            <div class="text-warning fw-bold fs-5"><?= number_format($user->loyaltyPoints) ?></div>
+                            <small class="text-secondary">Điểm tích lũy</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tổng chi tiêu -->
+                <div class="p-3 rounded-3 mb-3 total-spent-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary">
+                            <i class="bi bi-wallet2 me-1"></i>Tổng chi tiêu
+                        </span>
+                        <strong class="text-warning fs-5">
+                            <?= number_format($user->totalSpent, 0, ',', '.') ?>₫
+                        </strong>
+                    </div>
+                    <!-- Thanh tiến trình lên hạng -->
+                    <div class="mt-2">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-secondary"><?= ucfirst($user->memberLevel) ?></small>
+                            <small class="text-secondary"><?= ucfirst($nextLevel ?? 'Max') ?></small>
+                        </div>
+                        <div class="progress bg-secondary mt-1" style="height: 6px;">
+                            <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated"
+                                 style="width: <?= $levelProgress ?>%"></div>
+                        </div>
+                        <small class="text-secondary mt-1 d-block">
+                            Còn <?= number_format($pointsToNextLevel, 0, ',', '.') ?>₫ để lên hạng
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Menu nhanh -->
+                <div class="d-grid gap-2">
+                    <a href="/profile/edit" class="btn btn-outline-warning rounded-pill">
+                        <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa hồ sơ
+                    </a>
+                    <a href="/profile/transactions" class="btn btn-outline-secondary rounded-pill">
+                        <i class="bi bi-receipt me-1"></i>Lịch sử giao dịch
+                    </a>
+                    <a href="/profile/change-password" class="btn btn-outline-secondary rounded-pill">
+                        <i class="bi bi-shield-lock me-1"></i>Đổi mật khẩu
+                    </a>
+                    <a href="/my-tickets" class="btn btn-outline-info rounded-pill">
+                        <i class="bi bi-ticket-perforated me-1"></i>Vé của tôi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Thông tin chi tiết + Vé gần đây -->
+    <div class="col-lg-8">
+        <!-- Thông tin cá nhân -->
+        <div class="card bg-dark border-0 shadow-lg mb-4">
+            <div class="card-header bg-black border-bottom border-secondary d-flex justify-content-between">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-person-badge me-2"></i>Thông tin cá nhân
+                </h5>
+                <a href="/profile/edit" class="btn btn-sm btn-outline-warning rounded-pill">
+                    <i class="bi bi-pencil me-1"></i>Sửa
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Họ và tên</small>
+                        <span class="text-light"><?= htmlspecialchars($user->fullName ?: 'Chưa cập nhật') ?></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Tên đăng nhập</small>
+                        <span class="text-light"><?= htmlspecialchars($user->username) ?></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Email</small>
+                        <span class="text-light"><?= htmlspecialchars($user->email) ?></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Số điện thoại</small>
+                        <span class="text-light"><?= htmlspecialchars($user->phone ?: 'Chưa cập nhật') ?></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Ngày sinh</small>
+                        <span class="text-light">
+                            <?= $user->dateOfBirth ? date('d/m/Y', strtotime($user->dateOfBirth)) : 'Chưa cập nhật' ?>
+                        </span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Giới tính</small>
+                        <span class="text-light">
+                            <?= match($user->gender) {
+                                'male'   => 'Nam',
+                                'female' => 'Nữ',
+                                default  => 'Khác',
+                            } ?>
+                        </span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Thành phố</small>
+                        <span class="text-light"><?= htmlspecialchars($user->city ?: 'Chưa cập nhật') ?></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Ngày tham gia</small>
+                        <span class="text-light"><?= date('d/m/Y', strtotime($user->createdAt)) ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vé gần đây -->
+        <div class="card bg-dark border-0 shadow-lg">
+            <div class="card-header bg-black border-bottom border-secondary d-flex justify-content-between">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-ticket-perforated me-2"></i>Vé gần đây
+                </h5>
+                <a href="/my-tickets" class="btn btn-sm btn-outline-warning rounded-pill">
+                    Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <?php if (empty($recentTickets)): ?>
+                    <div class="text-center py-5">
+                        <i class="bi bi-ticket-perforated fs-1 text-secondary opacity-50"></i>
+                        <p class="text-secondary mt-2">Bạn chưa mua vé nào</p>
+                        <a href="/movies" class="btn btn-warning rounded-pill">
+                            <i class="bi bi-play-circle me-1"></i>Khám phá phim
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($recentTickets as $ticket): ?>
+                        <div class="ticket-item p-3 border-bottom border-secondary d-flex gap-3 align-items-center"
+                             onclick="location.href='/my-tickets/<?= $ticket->id ?>'">
+                            <img src="<?= htmlspecialchars($ticket->posterUrl) ?>"
+                                 class="rounded-3" width="60" height="80"
+                                 style="object-fit: cover;"
+                                 alt="<?= htmlspecialchars($ticket->movieTitle) ?>">
+                            <div class="flex-grow-1">
+                                <h6 class="text-light mb-1"><?= htmlspecialchars($ticket->movieTitle) ?></h6>
+                                <small class="text-secondary d-block">
+                                    <i class="bi bi-calendar3 me-1"></i><?= htmlspecialchars($ticket->showDate) ?>
+                                    lúc <?= htmlspecialchars($ticket->startTime) ?>
+                                </small>
+                                <small class="text-secondary">
+                                    <i class="bi bi-geo-alt me-1"></i><?= htmlspecialchars($ticket->cinemaName ?? '') ?>
+                                    — Ghế: <span class="text-warning"><?= htmlspecialchars($ticket->seatCode) ?></span>
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge <?= $ticket->status === 'paid' ? 'bg-success' : 'bg-warning' ?> rounded-pill">
+                                    <?= $ticket->status === 'paid' ? 'Đã thanh toán' : 'Đang giữ' ?>
+                                </span>
+                                <div class="text-warning fw-bold mt-1">
+                                    <?= number_format($ticket->totalPrice, 0, ',', '.') ?>₫
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 3 — Chi Tiết Vé + Mã QR
+## ═══════════════════════════════════════════
+
+### 3.1 Routes
+
+```php
+$router->get('/my-tickets',      'TicketController@myTickets');     // Danh sách vé
+$router->get('/my-tickets/{id}', 'TicketController@ticketDetail');  // Chi tiết vé + QR
+```
+
+### 3.2 View — Chi tiết vé (`views/movie/ticket_detail.php`)
+
+```php
+<?php
+// views/movie/ticket_detail.php
+// Sử dụng thư viện QR code phía server hoặc JS library: qrcode.js
+?>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <!-- Vé điện tử — Card lật 3D -->
+        <div class="ticket-3d-container mx-auto mb-5" id="ticket-card">
+            <div class="ticket-3d-inner">
+
+                <!-- === MẶT TRƯỚC === -->
+                <div class="ticket-3d-front">
+                    <div class="ticket-front-content">
+                        <!-- Header vé -->
+                        <div class="ticket-top d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="text-warning fw-bold mb-0">
+                                    <i class="bi bi-camera-reels me-1"></i>CinemaX
+                                </h4>
+                                <small class="text-secondary">Electronic Ticket</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill px-3 py-2">
+                                <i class="bi bi-check-circle me-1"></i>Đã thanh toán
+                            </span>
+                        </div>
+
+                        <!-- Đường cắt vé (dashed border) -->
+                        <div class="ticket-tear-line my-3"></div>
+
+                        <!-- Thông tin phim -->
+                        <div class="mb-3">
+                            <h3 class="text-light fw-bold mb-1">
+                                <?= htmlspecialchars($ticket->movieTitle) ?>
+                            </h3>
+                            <span class="badge bg-danger me-1">
+                                <?= htmlspecialchars($ticket->ageRating ?? 'P') ?>
+                            </span>
+                            <span class="text-secondary">
+                                <?= htmlspecialchars($ticket->duration) ?> phút
+                            </span>
+                        </div>
+
+                        <!-- Chi tiết suất chiếu -->
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="ticket-info-block">
+                                    <i class="bi bi-calendar3 text-warning"></i>
+                                    <small class="text-secondary d-block">Ngày chiếu</small>
+                                    <strong class="text-light"><?= htmlspecialchars($ticket->showDate) ?></strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="ticket-info-block">
+                                    <i class="bi bi-clock text-warning"></i>
+                                    <small class="text-secondary d-block">Giờ chiếu</small>
+                                    <strong class="text-light fs-5"><?= htmlspecialchars($ticket->startTime) ?></strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="ticket-info-block">
+                                    <i class="bi bi-geo-alt text-danger"></i>
+                                    <small class="text-secondary d-block">Rạp</small>
+                                    <strong class="text-light"><?= htmlspecialchars($ticket->cinemaName) ?></strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="ticket-info-block">
+                                    <i class="bi bi-door-open text-info"></i>
+                                    <small class="text-secondary d-block">Phòng chiếu</small>
+                                    <strong class="text-light"><?= htmlspecialchars($ticket->roomName) ?></strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="ticket-info-block">
+                                    <i class="bi bi-grid-3x3-gap text-success"></i>
+                                    <small class="text-secondary d-block">Ghế</small>
+                                    <strong class="text-warning fs-4"><?= htmlspecialchars($ticket->seatCode) ?></strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="ticket-info-block">
+                                    <i class="bi bi-cash-coin text-warning"></i>
+                                    <small class="text-secondary d-block">Giá vé</small>
+                                    <strong class="text-warning fs-5">
+                                        <?= number_format($ticket->totalPrice, 0, ',', '.') ?>₫
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer: Click để lật -->
+                        <div class="text-center mt-4">
+                            <small class="text-secondary flip-hint">
+                                <i class="bi bi-arrow-repeat me-1"></i>Click để xem mã QR
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === MẶT SAU — MÃ QR === -->
+                <div class="ticket-3d-back">
+                    <div class="ticket-back-content text-center py-4">
+                        <h5 class="text-warning fw-bold mb-3">
+                            <i class="bi bi-qr-code me-2"></i>MÃ VÉ ĐIỆN TỬ
+                        </h5>
+
+                        <!-- QR Code -->
+                        <div class="qr-container bg-white p-4 rounded-4 d-inline-block mx-auto mb-3">
+                            <div id="qr-code" data-ticket-code="<?= htmlspecialchars($ticket->ticketCode) ?>">
+                                <!-- QR sẽ được generate bởi JS -->
+                            </div>
+                        </div>
+
+                        <!-- Mã vé dạng text -->
+                        <div class="ticket-code-display mb-3">
+                            <span class="font-monospace text-warning fs-4 fw-bold letter-spacing-2">
+                                <?= htmlspecialchars($ticket->ticketCode) ?>
+                            </span>
+                        </div>
+
+                        <p class="text-secondary small mb-2">
+                            Đưa mã QR này cho nhân viên soát vé
+                        </p>
+                        <p class="text-secondary small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Mã vé có hiệu lực đến <?= htmlspecialchars($ticket->showDate) ?>
+                        </p>
+
+                        <!-- Nút hành động -->
+                        <div class="d-flex gap-2 justify-content-center mt-3">
+                            <button class="btn btn-outline-warning rounded-pill btn-sm"
+                                    onclick="downloadTicket()">
+                                <i class="bi bi-download me-1"></i>Tải vé
+                            </button>
+                            <button class="btn btn-outline-info rounded-pill btn-sm"
+                                    onclick="shareTicket()">
+                                <i class="bi bi-share me-1"></i>Chia sẻ
+                            </button>
+                        </div>
+
+                        <!-- Footer: Click để lật -->
+                        <div class="text-center mt-3">
+                            <small class="text-secondary flip-hint">
+                                <i class="bi bi-arrow-repeat me-1"></i>Click để xem thông tin vé
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Thông tin bổ sung -->
+        <div class="card bg-dark border-0 shadow-lg">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-info-circle me-2"></i>Thông tin đặt vé
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Mã giao dịch</small>
+                        <span class="text-light font-monospace"><?= htmlspecialchars($ticket->transactionId) ?></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Thời gian đặt</small>
+                        <span class="text-light"><?= date('d/m/Y H:i', strtotime($ticket->bookedAt)) ?></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Phương thức thanh toán</small>
+                        <span class="text-light">
+                            <?= match($ticket->paymentMethod) {
+                                'vnpay' => '<i class="bi bi-credit-card text-primary me-1"></i>VNPay',
+                                'momo'  => '<i class="bi bi-phone text-danger me-1"></i>MoMo',
+                                'cash'  => '<i class="bi bi-cash-coin text-success me-1"></i>Tại quầy',
+                                default => $ticket->paymentMethod,
+                            } ?>
+                        </span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-secondary d-block">Điểm tích lũy</small>
+                        <span class="text-warning">+<?= $ticket->loyaltyPointsEarned ?? 0 ?> điểm</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+```
+
+### 3.3 JavaScript — QR Code & Lật vé
+
+```javascript
+// public/assets/js/ticket_qr.js
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ── Generate QR Code ───────────────────────────────────
+    const qrContainer = document.getElementById('qr-code');
+    if (qrContainer) {
+        const ticketCode = qrContainer.dataset.ticketCode;
+        // Sử dụng thư viện qrcode.js (https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js)
+        new QRCode(qrContainer, {
+            text: `CINEMAX-TICKET:${ticketCode}`,
+            width: 200,
+            height: 200,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+
+    // ── Lật vé 3D (click) ─────────────────────────────────
+    const ticketCard = document.getElementById('ticket-card');
+    if (ticketCard) {
+        ticketCard.addEventListener('click', () => {
+            ticketCard.classList.toggle('flipped');
+        });
+    }
+});
+
+// Tải vé dạng hình ảnh
+function downloadTicket() {
+    // Sử dụng html2canvas để capture vé
+    alert('Tính năng đang phát triển — sẽ tải vé dạng PNG');
+}
+
+// Chia sẻ vé
+function shareTicket() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Vé xem phim CinemaX',
+            text: 'Mời bạn xem phim cùng tôi!',
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Đã copy link vé!');
+    }
+}
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 4 — Chỉnh Sửa Hồ Sơ
+## ═══════════════════════════════════════════
+
+```php
+<?php
+// views/profile/edit.php
+?>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb bg-transparent p-0">
+                <li class="breadcrumb-item"><a href="/profile" class="text-warning text-decoration-none">Hồ sơ</a></li>
+                <li class="breadcrumb-item active text-secondary">Chỉnh sửa</li>
+            </ol>
+        </nav>
+
+        <div class="card bg-dark border-0 shadow-lg">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h4 class="mb-0 text-warning">
+                    <i class="bi bi-pencil-square me-2"></i>Chỉnh sửa hồ sơ
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/profile/edit" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
+
+                    <!-- Avatar Upload -->
+                    <div class="text-center mb-4">
+                        <div class="avatar-upload-wrapper position-relative d-inline-block">
+                            <img src="<?= htmlspecialchars($user->avatarUrl ?: '/assets/img/default-avatar.png') ?>"
+                                 class="rounded-circle border border-3 border-warning"
+                                 id="avatar-preview" width="120" height="120"
+                                 style="object-fit: cover;" alt="Avatar">
+                            <label for="avatar-input"
+                                   class="btn btn-sm btn-warning rounded-circle position-absolute bottom-0 end-0"
+                                   style="width:36px; height:36px; padding:0; line-height:36px;">
+                                <i class="bi bi-camera"></i>
+                            </label>
+                            <input type="file" name="avatar" id="avatar-input"
+                                   accept="image/*" class="d-none"
+                                   onchange="previewAvatar(this)">
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Họ và tên -->
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Họ và tên</label>
+                            <input type="text" name="full_name" class="form-control bg-secondary border-0 text-light"
+                                   value="<?= htmlspecialchars($user->fullName ?? '') ?>"
+                                   placeholder="Nguyễn Văn A">
+                        </div>
+
+                        <!-- Tên đăng nhập (readonly) -->
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Tên đăng nhập</label>
+                            <input type="text" class="form-control bg-secondary border-0 text-secondary"
+                                   value="<?= htmlspecialchars($user->username) ?>" readonly>
+                        </div>
+
+                        <!-- Email (readonly) -->
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Email</label>
+                            <input type="email" class="form-control bg-secondary border-0 text-secondary"
+                                   value="<?= htmlspecialchars($user->email) ?>" readonly>
+                            <small class="text-secondary">Liên hệ admin để đổi email</small>
+                        </div>
+
+                        <!-- Số điện thoại -->
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Số điện thoại</label>
+                            <input type="tel" name="phone" class="form-control bg-secondary border-0 text-light"
+                                   value="<?= htmlspecialchars($user->phone ?? '') ?>"
+                                   placeholder="0901234567">
+                        </div>
+
+                        <!-- Ngày sinh -->
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Ngày sinh</label>
+                            <input type="date" name="date_of_birth" class="form-control bg-secondary border-0 text-light"
+                                   value="<?= htmlspecialchars($user->dateOfBirth ?? '') ?>">
+                        </div>
+
+                        <!-- Giới tính -->
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Giới tính</label>
+                            <select name="gender" class="form-select bg-secondary border-0 text-light">
+                                <option value="male"   <?= ($user->gender ?? '') === 'male'   ? 'selected' : '' ?>>Nam</option>
+                                <option value="female" <?= ($user->gender ?? '') === 'female' ? 'selected' : '' ?>>Nữ</option>
+                                <option value="other"  <?= ($user->gender ?? '') === 'other'  ? 'selected' : '' ?>>Khác</option>
+                            </select>
+                        </div>
+
+                        <!-- Thành phố -->
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Thành phố</label>
+                            <select name="city" class="form-select bg-secondary border-0 text-light">
+                                <option value="">-- Chọn thành phố --</option>
+                                <?php
+                                $cities = ['TP. Hồ Chí Minh','Hà Nội','Đà Nẵng','Cần Thơ','Hải Phòng','Nha Trang','Huế','Biên Hòa','Vũng Tàu','Đà Lạt'];
+                                foreach ($cities as $city):
+                                ?>
+                                    <option value="<?= $city ?>" <?= ($user->city ?? '') === $city ? 'selected' : '' ?>>
+                                        <?= $city ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Nút lưu -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-warning rounded-pill px-4">
+                            <i class="bi bi-check-lg me-1"></i>Lưu thay đổi
+                        </button>
+                        <a href="/profile" class="btn btn-outline-secondary rounded-pill px-4">
+                            Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('avatar-preview').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 5 — Lịch Sử Giao Dịch
+## ═══════════════════════════════════════════
+
+```php
+<?php
+// views/profile/transactions.php
+?>
+
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-transparent p-0">
+        <li class="breadcrumb-item"><a href="/profile" class="text-warning text-decoration-none">Hồ sơ</a></li>
+        <li class="breadcrumb-item active text-secondary">Lịch sử giao dịch</li>
+    </ol>
+</nav>
+
+<div class="card bg-dark border-0 shadow-lg">
+    <div class="card-header bg-black border-bottom border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0 text-warning">
+            <i class="bi bi-receipt-cutoff me-2"></i>Lịch sử giao dịch
+        </h4>
+        <!-- Filter -->
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm bg-secondary border-0 text-light" style="width: auto;"
+                    onchange="location.href='?status='+this.value">
+                <option value="">Tất cả</option>
+                <option value="paid" <?= ($filter ?? '') === 'paid' ? 'selected' : '' ?>>Đã thanh toán</option>
+                <option value="cancelled" <?= ($filter ?? '') === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
+            </select>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <!-- Bảng giao dịch -->
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead class="bg-black">
+                    <tr>
+                        <th class="text-secondary small">Mã GD</th>
+                        <th class="text-secondary small">Phim</th>
+                        <th class="text-secondary small">Rạp</th>
+                        <th class="text-secondary small">Ghế</th>
+                        <th class="text-secondary small">Ngày chiếu</th>
+                        <th class="text-secondary small">Số tiền</th>
+                        <th class="text-secondary small">Trạng thái</th>
+                        <th class="text-secondary small">Ngày mua</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($transactions as $txn): ?>
+                        <tr class="cursor-pointer" onclick="location.href='/my-tickets/<?= $txn->ticketId ?>'">
+                            <td class="font-monospace small text-secondary">
+                                <?= htmlspecialchars(substr($txn->transactionId, 0, 12)) ?>...
+                            </td>
+                            <td>
+                                <strong class="text-light"><?= htmlspecialchars($txn->movieTitle) ?></strong>
+                            </td>
+                            <td class="text-secondary small">
+                                <?= htmlspecialchars($txn->cinemaName ?? '—') ?>
+                            </td>
+                            <td>
+                                <span class="badge bg-success"><?= htmlspecialchars($txn->seatCode) ?></span>
+                            </td>
+                            <td class="text-secondary small">
+                                <?= htmlspecialchars($txn->showDate) ?> <?= htmlspecialchars($txn->startTime) ?>
+                            </td>
+                            <td class="text-warning fw-bold">
+                                <?= number_format($txn->totalPrice, 0, ',', '.') ?>₫
+                            </td>
+                            <td>
+                                <span class="badge <?= match($txn->status) {
+                                    'paid'      => 'bg-success',
+                                    'cancelled' => 'bg-danger',
+                                    'holding'   => 'bg-warning text-dark',
+                                    default     => 'bg-secondary',
+                                } ?> rounded-pill">
+                                    <?= match($txn->status) {
+                                        'paid'      => 'Thành công',
+                                        'cancelled' => 'Đã hủy',
+                                        'holding'   => 'Đang giữ',
+                                        default     => $txn->status,
+                                    } ?>
+                                </span>
+                            </td>
+                            <td class="text-secondary small">
+                                <?= date('d/m/Y H:i', strtotime($txn->bookedAt)) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tổng kết -->
+        <div class="p-3 bg-black d-flex justify-content-between align-items-center">
+            <span class="text-secondary">
+                Tổng: <strong class="text-light"><?= count($transactions) ?></strong> giao dịch
+            </span>
+            <span class="text-warning fw-bold">
+                Tổng chi: <?= number_format($totalSpent, 0, ',', '.') ?>₫
+            </span>
+        </div>
+    </div>
+</div>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 6 — Tìm Kiếm Nâng Cao
+## ═══════════════════════════════════════════
+
+### Routes
+
+```php
+$router->get('/search', 'SearchController@index');
+```
+
+### View (`views/search/index.php`)
+
+```php
+<?php
+// views/search/index.php
+?>
+
+<!-- Search Hero -->
+<div class="search-hero text-center py-5 mb-5">
+    <h2 class="text-warning fw-bold mb-4">
+        <i class="bi bi-search me-2"></i>Tìm kiếm phim, rạp, suất chiếu
+    </h2>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <form method="GET" action="/search" class="position-relative">
+                <div class="input-group input-group-lg search-bar-glow">
+                    <span class="input-group-text bg-dark border-warning border-end-0 text-warning">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control bg-dark border-warning text-light fs-6"
+                           placeholder="Nhập tên phim, rạp chiếu, thể loại..."
+                           value="<?= htmlspecialchars($query ?? '') ?>"
+                           autocomplete="off"
+                           id="search-input">
+                    <button type="submit" class="btn btn-warning fw-bold px-4">
+                        Tìm kiếm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bộ lọc nâng cao -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-8">
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                <!-- Thể loại -->
+                <select name="genre" class="form-select form-select-sm bg-secondary border-0 text-light rounded-pill"
+                        style="width: auto;" onchange="this.form.submit()">
+                    <option value="">🎭 Thể loại</option>
+                    <option value="action">Hành động</option>
+                    <option value="comedy">Hài</option>
+                    <option value="horror">Kinh dị</option>
+                    <option value="romance">Tình cảm</option>
+                    <option value="animation">Hoạt hình</option>
+                    <option value="scifi">Khoa học viễn tưởng</option>
+                </select>
+                <!-- Rạp -->
+                <select name="cinema" class="form-select form-select-sm bg-secondary border-0 text-light rounded-pill"
+                        style="width: auto;">
+                    <option value="">🏢 Rạp chiếu</option>
+                    <?php foreach ($cinemas ?? [] as $c): ?>
+                        <option value="<?= $c->id ?>"><?= htmlspecialchars($c->name) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <!-- Ngày -->
+                <input type="date" name="date"
+                       class="form-control form-control-sm bg-secondary border-0 text-light rounded-pill"
+                       style="width: auto;" value="<?= $selectedDate ?? '' ?>">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kết quả tìm kiếm -->
+<?php if (isset($query) && strlen($query) > 0): ?>
+    <h5 class="text-light mb-4">
+        Kết quả cho "<span class="text-warning"><?= htmlspecialchars($query) ?></span>"
+        <span class="text-secondary">(<?= count($results ?? []) ?> kết quả)</span>
+    </h5>
+
+    <?php if (empty($results)): ?>
+        <div class="text-center py-5">
+            <i class="bi bi-emoji-frown fs-1 text-secondary opacity-50"></i>
+            <p class="text-secondary mt-3 fs-5">Không tìm thấy kết quả phù hợp</p>
+            <p class="text-secondary">Thử tìm kiếm với từ khóa khác</p>
+        </div>
+    <?php else: ?>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+            <?php foreach ($results as $movie): ?>
+                <div class="col">
+                    <div class="card bg-secondary border-0 h-100 shadow movie-card search-result-card"
+                         onclick="location.href='/movies/<?= $movie->id ?>'">
+                        <div class="position-relative">
+                            <img src="<?= htmlspecialchars($movie->posterUrl ?: '/assets/img/no-poster.jpg') ?>"
+                                 class="card-img-top img-fluid rounded-top"
+                                 alt="<?= htmlspecialchars($movie->title) ?>"
+                                 style="height: 280px; object-fit: cover;">
+                            <span class="badge bg-danger position-absolute top-0 end-0 m-2">
+                                <?= htmlspecialchars($movie->ageRating ?? 'P') ?>
+                            </span>
+                        </div>
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-light mb-1 text-truncate">
+                                <?= htmlspecialchars($movie->title) ?>
+                            </h6>
+                            <small class="text-secondary">
+                                <i class="bi bi-tags me-1"></i><?= htmlspecialchars($movie->genre ?? '') ?>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+<?php endif; ?>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 7 — Trang Khuyến Mãi / Ưu Đãi
+## ═══════════════════════════════════════════
+
+### Routes
+
+```php
+$router->get('/promotions',      'PromotionController@index');
+$router->get('/promotions/{id}', 'PromotionController@detail');
+```
+
+### View (`views/promotions/index.php`)
+
+```php
+<?php
+// views/promotions/index.php
+?>
+
+<!-- Hero -->
+<div class="promo-hero text-center py-5 mb-5">
+    <h1 class="display-5 fw-bold">
+        <span class="text-warning">🎁</span> Ưu đãi & Khuyến mãi
+    </h1>
+    <p class="lead text-secondary">Đừng bỏ lỡ những deal hot nhất từ CinemaX</p>
+</div>
+
+<!-- Ưu đãi nổi bật (Carousel) -->
+<div id="promoCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div class="carousel-inner rounded-4 overflow-hidden">
+        <?php foreach ($featuredPromos as $i => $promo): ?>
+            <div class="carousel-item <?= $i === 0 ? 'active' : '' ?>">
+                <div class="promo-slide position-relative" style="height: 350px;">
+                    <img src="<?= htmlspecialchars($promo->bannerUrl) ?>"
+                         class="w-100 h-100" style="object-fit: cover; filter: brightness(0.5);"
+                         alt="<?= htmlspecialchars($promo->title) ?>">
+                    <div class="position-absolute bottom-0 start-0 p-5 w-100"
+                         style="background: linear-gradient(transparent, rgba(0,0,0,0.9));">
+                        <h2 class="text-warning fw-bold"><?= htmlspecialchars($promo->title) ?></h2>
+                        <p class="text-light mb-2"><?= htmlspecialchars($promo->shortDescription) ?></p>
+                        <div class="d-flex gap-3 align-items-center">
+                            <span class="badge bg-danger rounded-pill px-3 py-2 fs-6">
+                                Giảm <?= $promo->discountType === 'percent'
+                                    ? $promo->discountValue . '%'
+                                    : number_format($promo->discountValue, 0, ',', '.') . '₫' ?>
+                            </span>
+                            <small class="text-secondary">
+                                <i class="bi bi-clock me-1"></i>
+                                Hết hạn: <?= date('d/m/Y', strtotime($promo->expiresAt)) ?>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#promoCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#promoCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</div>
+
+<!-- Danh sách mã giảm giá -->
+<h4 class="text-warning border-start border-warning ps-3 mb-4">
+    <i class="bi bi-tag-fill me-2"></i>Mã giảm giá đang hoạt động
+</h4>
+
+<div class="row g-4">
+    <?php foreach ($promotions as $promo): ?>
+        <div class="col-md-6 col-lg-4">
+            <div class="card promo-card bg-dark border-0 overflow-hidden h-100">
+                <div class="card-body p-4 position-relative">
+                    <!-- Ribbon -->
+                    <div class="promo-ribbon">
+                        <?= $promo->discountType === 'percent' ? $promo->discountValue . '%' : 'DEAL' ?>
+                    </div>
+
+                    <h5 class="text-warning fw-bold mb-2"><?= htmlspecialchars($promo->title ?? $promo->code) ?></h5>
+                    <p class="text-secondary small mb-3">
+                        <?= htmlspecialchars($promo->description ?? 'Áp dụng khi đặt vé trực tuyến') ?>
+                    </p>
+
+                    <!-- Mã giảm giá -->
+                    <div class="promo-code-box d-flex align-items-center gap-2 mb-3">
+                        <code class="text-warning fs-5 fw-bold"><?= htmlspecialchars($promo->code) ?></code>
+                        <button class="btn btn-sm btn-outline-warning rounded-pill copy-promo-btn"
+                                onclick="copyPromoCode('<?= htmlspecialchars($promo->code) ?>')">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+
+                    <!-- Meta info -->
+                    <div class="d-flex flex-wrap gap-2">
+                        <small class="text-secondary">
+                            <i class="bi bi-calendar me-1"></i>
+                            HSD: <?= date('d/m/Y', strtotime($promo->expiresAt)) ?>
+                        </small>
+                        <?php if ($promo->maxUses): ?>
+                            <small class="text-secondary">
+                                <i class="bi bi-people me-1"></i>
+                                Còn <?= $promo->maxUses - $promo->usedCount ?> lượt
+                            </small>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+<script>
+function copyPromoCode(code) {
+    navigator.clipboard.writeText(code).then(() => {
+        // Hiệu ứng toast thông báo
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed bottom-0 end-0 m-3 p-3 bg-success text-white rounded-3 shadow-lg';
+        toast.style.zIndex = '9999';
+        toast.innerHTML = '<i class="bi bi-check-circle me-1"></i>Đã copy mã: ' + code;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    });
+}
+</script>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 8 — Đổi Mật Khẩu
+## ═══════════════════════════════════════════
+
+```php
+<?php
+// views/profile/change_password.php
+?>
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="card bg-dark border-0 shadow-lg">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h4 class="mb-0 text-warning">
+                    <i class="bi bi-shield-lock me-2"></i>Đổi mật khẩu
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <?php if (isset($vm->errors['general'])): ?>
+                    <div class="alert alert-danger border-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <?= htmlspecialchars($vm->errors['general']) ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST" action="/profile/change-password">
+                    <?= csrf_field() ?>
+
+                    <div class="mb-3">
+                        <label class="form-label text-light">Mật khẩu hiện tại</label>
+                        <div class="input-group">
+                            <input type="password" name="current_password"
+                                   class="form-control bg-secondary border-0 text-light"
+                                   id="current-pw" required>
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="togglePassword('current-pw')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-light">Mật khẩu mới</label>
+                        <div class="input-group">
+                            <input type="password" name="new_password"
+                                   class="form-control bg-secondary border-0 text-light"
+                                   id="new-pw" required minlength="8"
+                                   oninput="checkPasswordStrength(this.value)">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="togglePassword('new-pw')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <!-- Thanh độ mạnh mật khẩu -->
+                        <div class="mt-2">
+                            <div class="progress bg-secondary" style="height: 4px;">
+                                <div class="progress-bar" id="pw-strength-bar" style="width: 0%"></div>
+                            </div>
+                            <small id="pw-strength-text" class="text-secondary mt-1 d-block"></small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-light">Xác nhận mật khẩu mới</label>
+                        <input type="password" name="confirm_password"
+                               class="form-control bg-secondary border-0 text-light"
+                               required minlength="8">
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 fw-bold rounded-pill">
+                        <i class="bi bi-check-lg me-1"></i>Đổi mật khẩu
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function checkPasswordStrength(pw) {
+    let strength = 0;
+    if (pw.length >= 8)           strength++;
+    if (/[A-Z]/.test(pw))         strength++;
+    if (/[0-9]/.test(pw))         strength++;
+    if (/[^A-Za-z0-9]/.test(pw))  strength++;
+
+    const bar   = document.getElementById('pw-strength-bar');
+    const text  = document.getElementById('pw-strength-text');
+    const levels = [
+        { width: '25%',  color: 'bg-danger',  label: 'Yếu' },
+        { width: '50%',  color: 'bg-warning',  label: 'Trung bình' },
+        { width: '75%',  color: 'bg-info',    label: 'Khá' },
+        { width: '100%', color: 'bg-success', label: 'Mạnh' },
+    ];
+
+    const level = levels[Math.min(strength, 3)];
+    bar.style.width = pw.length === 0 ? '0%' : level.width;
+    bar.className = 'progress-bar ' + level.color;
+    text.textContent = pw.length === 0 ? '' : level.label;
+}
+</script>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 9 — Quên Mật Khẩu
+## ═══════════════════════════════════════════
+
+```php
+<?php
+// views/auth/forgot_password.php
+?>
+<div class="row justify-content-center min-vh-100 align-items-center">
+    <div class="col-md-5 col-lg-4">
+        <div class="card bg-dark border-0 shadow-lg forgot-pw-card">
+            <div class="card-body p-5 text-center">
+                <!-- Icon -->
+                <div class="forgot-icon mb-4">
+                    <i class="bi bi-envelope-check text-warning" style="font-size: 4rem;"></i>
+                </div>
+
+                <h3 class="text-light fw-bold mb-2">Quên mật khẩu?</h3>
+                <p class="text-secondary mb-4">
+                    Nhập email đăng ký để nhận link đặt lại mật khẩu
+                </p>
+
+                <?php if (isset($success)): ?>
+                    <div class="alert alert-success border-0">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST" action="/forgot-password">
+                    <?= csrf_field() ?>
+
+                    <div class="mb-4 text-start">
+                        <label class="form-label text-light">Địa chỉ email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-secondary border-0 text-warning">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" name="email"
+                                   class="form-control bg-secondary border-0 text-light"
+                                   placeholder="name@example.com" required
+                                   value="<?= htmlspecialchars($vm->email ?? '') ?>">
+                        </div>
+                        <?php if (isset($vm->errors['email'])): ?>
+                            <small class="text-danger"><?= htmlspecialchars($vm->errors['email']) ?></small>
+                        <?php endif; ?>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 fw-bold rounded-pill py-2">
+                        <i class="bi bi-send me-1"></i>Gửi link đặt lại
+                    </button>
+                </form>
+
+                <div class="mt-4">
+                    <a href="/login" class="text-warning text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i>Quay lại đăng nhập
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 10 — Trang Tin Tức / Blog Phim
+## ═══════════════════════════════════════════
+
+### Routes
+
+```php
+$router->get('/news',      'NewsController@index');
+$router->get('/news/{slug}', 'NewsController@detail');
+```
+
+### View (`views/news/index.php`)
+
+```php
+<?php
+// views/news/index.php
+?>
+
+<h2 class="text-warning fw-bold mb-4 border-start border-warning ps-3">
+    <i class="bi bi-newspaper me-2"></i>Tin tức & Bài viết
+</h2>
+
+<!-- Bài viết nổi bật -->
+<?php if (isset($featured)): ?>
+    <div class="card bg-dark border-0 shadow-lg mb-5 overflow-hidden featured-news-card"
+         onclick="location.href='/news/<?= htmlspecialchars($featured->slug) ?>'">
+        <div class="row g-0">
+            <div class="col-md-6">
+                <img src="<?= htmlspecialchars($featured->imageUrl) ?>"
+                     class="w-100 h-100" style="object-fit: cover; min-height: 300px;"
+                     alt="<?= htmlspecialchars($featured->title) ?>">
+            </div>
+            <div class="col-md-6 p-4 d-flex flex-column justify-content-center">
+                <span class="badge bg-warning text-dark rounded-pill mb-2 align-self-start">
+                    <i class="bi bi-star-fill me-1"></i>Nổi bật
+                </span>
+                <h3 class="text-light fw-bold"><?= htmlspecialchars($featured->title) ?></h3>
+                <p class="text-secondary"><?= htmlspecialchars($featured->excerpt) ?></p>
+                <small class="text-secondary">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    <?= date('d/m/Y', strtotime($featured->publishedAt)) ?>
+                    <i class="bi bi-eye ms-3 me-1"></i><?= number_format($featured->views) ?> lượt xem
+                </small>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<!-- Danh sách bài viết -->
+<div class="row g-4">
+    <?php foreach ($articles as $article): ?>
+        <div class="col-md-6 col-lg-4">
+            <div class="card bg-dark border-0 h-100 news-card overflow-hidden"
+                 onclick="location.href='/news/<?= htmlspecialchars($article->slug) ?>'">
+                <img src="<?= htmlspecialchars($article->imageUrl) ?>"
+                     class="card-img-top" style="height: 200px; object-fit: cover;"
+                     alt="<?= htmlspecialchars($article->title) ?>">
+                <div class="card-body">
+                    <span class="badge bg-secondary rounded-pill mb-2">
+                        <?= htmlspecialchars($article->category) ?>
+                    </span>
+                    <h5 class="text-light fw-bold mb-2"><?= htmlspecialchars($article->title) ?></h5>
+                    <p class="text-secondary small mb-0">
+                        <?= htmlspecialchars(mb_substr($article->excerpt, 0, 120)) ?>...
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-top border-secondary">
+                    <small class="text-secondary">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <?= date('d/m/Y', strtotime($article->publishedAt)) ?>
+                    </small>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+</div>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 11 — Trang Liên Hệ / Hỗ Trợ
+## ═══════════════════════════════════════════
+
+```php
+<?php
+// views/contact/index.php
+?>
+
+<div class="text-center py-5 mb-5">
+    <h1 class="display-5 fw-bold text-warning">
+        <i class="bi bi-headset me-2"></i>Liên hệ & Hỗ trợ
+    </h1>
+    <p class="lead text-secondary">Chúng tôi luôn sẵn sàng hỗ trợ bạn</p>
+</div>
+
+<div class="row g-4">
+    <!-- Cột trái: Thông tin liên hệ -->
+    <div class="col-lg-5">
+        <div class="card bg-dark border-0 shadow-lg h-100">
+            <div class="card-body p-4">
+                <h4 class="text-warning mb-4">Thông tin liên hệ</h4>
+
+                <div class="contact-info-item d-flex gap-3 mb-4">
+                    <div class="contact-icon bg-warning bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-telephone-fill text-warning fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-light mb-1">Hotline</h6>
+                        <p class="text-secondary mb-0">1900 636 018 (8:00 - 22:00)</p>
+                    </div>
+                </div>
+
+                <div class="contact-info-item d-flex gap-3 mb-4">
+                    <div class="contact-icon bg-primary bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-envelope-fill text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-light mb-1">Email</h6>
+                        <p class="text-secondary mb-0">support@cinemax.vn</p>
+                    </div>
+                </div>
+
+                <div class="contact-info-item d-flex gap-3 mb-4">
+                    <div class="contact-icon bg-success bg-opacity-10 rounded-circle p-3">
+                        <i class="bi bi-geo-alt-fill text-success fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-light mb-1">Trụ sở chính</h6>
+                        <p class="text-secondary mb-0">123 Nguyễn Huệ, Q.1, TP.HCM</p>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <h6 class="text-light mt-4 mb-3">Kết nối với chúng tôi</h6>
+                <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-outline-primary rounded-circle" style="width:42px;height:42px;padding:0;line-height:42px;">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-info rounded-circle" style="width:42px;height:42px;padding:0;line-height:42px;">
+                        <i class="bi bi-twitter-x"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-danger rounded-circle" style="width:42px;height:42px;padding:0;line-height:42px;">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-danger rounded-circle" style="width:42px;height:42px;padding:0;line-height:42px;">
+                        <i class="bi bi-youtube"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary rounded-circle" style="width:42px;height:42px;padding:0;line-height:42px;">
+                        <i class="bi bi-tiktok"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Form liên hệ -->
+    <div class="col-lg-7">
+        <div class="card bg-dark border-0 shadow-lg">
+            <div class="card-header bg-black border-bottom border-secondary">
+                <h5 class="mb-0 text-warning">
+                    <i class="bi bi-chat-dots me-2"></i>Gửi yêu cầu hỗ trợ
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/contact">
+                    <?= csrf_field() ?>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Họ và tên</label>
+                            <input type="text" name="name" class="form-control bg-secondary border-0 text-light"
+                                   placeholder="Nguyễn Văn A" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label text-light">Email</label>
+                            <input type="email" name="email" class="form-control bg-secondary border-0 text-light"
+                                   placeholder="email@example.com" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-light">Chủ đề</label>
+                            <select name="subject" class="form-select bg-secondary border-0 text-light">
+                                <option value="booking">Vấn đề đặt vé</option>
+                                <option value="payment">Thanh toán / Hoàn tiền</option>
+                                <option value="account">Tài khoản</option>
+                                <option value="feedback">Góp ý / Phản hồi</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-light">Nội dung</label>
+                            <textarea name="message" class="form-control bg-secondary border-0 text-light"
+                                      rows="5" placeholder="Mô tả chi tiết vấn đề của bạn..." required></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 fw-bold rounded-pill mt-4">
+                        <i class="bi bi-send me-1"></i>Gửi yêu cầu
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Section -->
+<div class="mt-5">
+    <h4 class="text-warning fw-bold mb-4 border-start border-warning ps-3">
+        <i class="bi bi-question-circle me-2"></i>Câu hỏi thường gặp (FAQ)
+    </h4>
+    <div class="accordion accordion-flush" id="faqAccordion">
+        <?php
+        $faqs = [
+            ['q' => 'Làm sao để đặt vé online?', 'a' => 'Chọn phim → Chọn suất chiếu → Chọn ghế → Thanh toán. Quy trình chỉ mất 2-3 phút.'],
+            ['q' => 'Tôi có thể hủy vé đã đặt không?', 'a' => 'Vé đã thanh toán có thể hủy trước giờ chiếu 2 tiếng. Hoàn tiền qua phương thức thanh toán ban đầu trong 3-5 ngày làm việc.'],
+            ['q' => 'Mã giảm giá sử dụng như thế nào?', 'a' => 'Nhập mã giảm giá ở bước thanh toán, nhấn "Áp dụng". Hệ thống sẽ tự động tính giảm giá.'],
+            ['q' => 'Quên mang vé giấy thì sao?', 'a' => 'Bạn có thể dùng vé điện tử (mã QR) trên app hoặc website. Đưa mã QR cho nhân viên soát vé.'],
+            ['q' => 'Tích điểm thành viên như thế nào?', 'a' => 'Mỗi lần mua vé, bạn nhận được 5% giá trị vé dưới dạng điểm tích lũy. Điểm có thể dùng để đổi vé miễn phí hoặc ưu đãi.'],
+        ];
+        foreach ($faqs as $i => $faq): ?>
+            <div class="accordion-item bg-dark border-secondary">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed bg-dark text-light shadow-none border-0"
+                            type="button" data-bs-toggle="collapse" data-bs-target="#faq-<?= $i ?>">
+                        <?= htmlspecialchars($faq['q']) ?>
+                    </button>
+                </h2>
+                <div id="faq-<?= $i ?>" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body text-secondary">
+                        <?= htmlspecialchars($faq['a']) ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## MÀN HÌNH 12 & 13 — Trang Lỗi (404, 500)
+## ═══════════════════════════════════════════
+
+### 404 Not Found
+
+```php
+<?php
+// views/errors/404.php
+?>
+<div class="text-center py-5">
+    <div class="error-animation mb-4">
+        <h1 class="display-1 fw-bold text-warning error-number" style="font-size: 10rem; line-height: 1;">
+            4<span class="text-danger">0</span>4
+        </h1>
+    </div>
+    <h3 class="text-light fw-bold mb-3">Trang không tồn tại</h3>
+    <p class="text-secondary mb-4 fs-5">
+        Có vẻ trang bạn tìm kiếm đã bị xóa hoặc không tồn tại.
+    </p>
+    <div class="d-flex gap-3 justify-content-center">
+        <a href="/" class="btn btn-warning rounded-pill px-4">
+            <i class="bi bi-house me-1"></i>Về trang chủ
+        </a>
+        <a href="/movies" class="btn btn-outline-warning rounded-pill px-4">
+            <i class="bi bi-film me-1"></i>Xem phim
+        </a>
+    </div>
+</div>
+```
+
+### 500 Server Error
+
+```php
+<?php
+// views/errors/500.php
+?>
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 6rem;"></i>
+    </div>
+    <h1 class="display-4 fw-bold text-danger mb-3">500</h1>
+    <h3 class="text-light fw-bold mb-3">Lỗi hệ thống</h3>
+    <p class="text-secondary mb-4 fs-5">
+        Đã xảy ra lỗi không mong muốn. Đội ngũ kỹ thuật đang xử lý.
+    </p>
+    <a href="/" class="btn btn-warning rounded-pill px-4">
+        <i class="bi bi-house me-1"></i>Về trang chủ
+    </a>
+</div>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## CSS MỞ RỘNG — Hiệu Ứng Bootstrap 5 Nâng Cao
+## ═══════════════════════════════════════════
+
+Thêm vào `public/assets/css/app.css`:
+
+```css
+/* ══════════════════════════════════════════════
+   EXTENDED STYLES — CinemaX Premium UI
+   ══════════════════════════════════════════════ */
+
+/* ── Google Fonts ─────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* ── Glassmorphism Cards ──────────────────────── */
+.profile-main-card,
+.cinema-info-card {
+    background: rgba(26, 26, 46, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 193, 7, 0.15);
+    border-radius: 16px;
+}
+
+/* ── Avatar Glow ──────────────────────────────── */
+.avatar-glow {
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.4),
+                0 0 40px rgba(255, 193, 7, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.avatar-glow:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 193, 7, 0.6),
+                0 0 60px rgba(255, 193, 7, 0.25);
+}
+
+/* ── Stat Mini Cards ──────────────────────────── */
+.stat-mini {
+    background: rgba(255, 193, 7, 0.05);
+    border: 1px solid rgba(255, 193, 7, 0.15);
+    transition: all 0.2s ease;
+}
+.stat-mini:hover {
+    background: rgba(255, 193, 7, 0.1);
+    transform: translateY(-2px);
+}
+
+/* ── Total Spent Card ─────────────────────────── */
+.total-spent-card {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.05), rgba(255, 193, 7, 0.02));
+    border: 1px solid rgba(255, 193, 7, 0.15);
+}
+
+/* ── Cinema Cards ─────────────────────────────── */
+.cinema-card {
+    cursor: pointer;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+.cinema-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(255, 193, 7, 0.2);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+.cinema-card .cinema-img {
+    transition: transform 0.5s ease;
+}
+.cinema-card:hover .cinema-img {
+    transform: scale(1.05);
+}
+
+/* ── Cinema Hero ──────────────────────────────── */
+.cinema-hero {
+    background: linear-gradient(135deg, #0a0a14 0%, #111128 40%, #1a1a3e 70%, #0f0f1b 100%);
+    border-radius: 16px;
+    border: 1px solid #222244;
+    position: relative;
+    overflow: hidden;
+}
+.cinema-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 40%, rgba(255, 193, 7, 0.06) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* ── Facility Badges ──────────────────────────── */
+.facility-badge {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.25);
+    color: #ffc107;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.facility-badge-lg {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.facility-badge-lg:hover {
+    background: rgba(255, 193, 7, 0.2);
+    transform: scale(1.05);
+}
+
+/* ── Info Items ────────────────────────────────── */
+.info-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+.info-item:hover {
+    background: rgba(255, 193, 7, 0.05);
+    border-color: rgba(255, 193, 7, 0.15);
+}
+
+/* ── Province Filter Buttons ──────────────────── */
+.province-btn {
+    transition: all 0.2s ease;
+}
+.province-btn:hover {
+    transform: scale(1.05);
+}
+
+/* ── Ticket 3D Flip ───────────────────────────── */
+.ticket-3d-container {
+    width: 100%;
+    max-width: 500px;
+    min-height: 480px;
+    perspective: 1200px;
+    cursor: pointer;
+}
+.ticket-3d-inner {
+    position: relative;
+    width: 100%;
+    min-height: 480px;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-style: preserve-3d;
+}
+.ticket-3d-container.flipped .ticket-3d-inner {
+    transform: rotateY(180deg);
+}
+.ticket-3d-front, .ticket-3d-back {
+    position: absolute;
+    width: 100%;
+    min-height: 480px;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    overflow: hidden;
+}
+.ticket-3d-front {
+    background: linear-gradient(145deg, #0f0f1b 0%, #1a1a3e 50%, #0f0f1b 100%);
+    border: 2px solid rgba(255, 193, 7, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.ticket-3d-back {
+    background: linear-gradient(145deg, #0f0f1b 0%, #16213e 50%, #0f0f1b 100%);
+    border: 2px solid rgba(255, 193, 7, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transform: rotateY(180deg);
+}
+.ticket-front-content,
+.ticket-back-content {
+    padding: 2rem;
+}
+
+/* Đường cắt vé */
+.ticket-tear-line {
+    border-top: 2px dashed rgba(255, 193, 7, 0.3);
+    position: relative;
+}
+.ticket-tear-line::before,
+.ticket-tear-line::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    width: 24px; height: 24px;
+    background: #0f0f1b;
+    border-radius: 50%;
+}
+.ticket-tear-line::before { left: -32px; }
+.ticket-tear-line::after  { right: -32px; }
+
+/* Ticket info block */
+.ticket-info-block {
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Flip hint animation */
+.flip-hint {
+    animation: float-hint 2s ease-in-out infinite;
+}
+@keyframes float-hint {
+    0%, 100% { opacity: 0.5; transform: translateY(0); }
+    50%      { opacity: 1;   transform: translateY(-3px); }
+}
+
+/* ── QR Container ─────────────────────────────── */
+.qr-container {
+    box-shadow: 0 4px 20px rgba(255, 193, 7, 0.3);
+}
+
+/* ── Ticket Item Hover ────────────────────────── */
+.ticket-item {
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.ticket-item:hover {
+    background: rgba(255, 193, 7, 0.05);
+}
+
+/* ── Search Bar Glow ──────────────────────────── */
+.search-bar-glow:focus-within {
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+}
+.search-hero {
+    background: linear-gradient(135deg, #0a0a14, #1a1a3e, #0f0f1b);
+    border-radius: 16px;
+    border: 1px solid #222244;
+    padding: 3rem 2rem;
+}
+
+/* ── Search Result Card Animation ─────────────── */
+.search-result-card {
+    animation: fadeInUp 0.4s ease-out backwards;
+}
+.search-result-card:nth-child(1)  { animation-delay: 0.05s; }
+.search-result-card:nth-child(2)  { animation-delay: 0.10s; }
+.search-result-card:nth-child(3)  { animation-delay: 0.15s; }
+.search-result-card:nth-child(4)  { animation-delay: 0.20s; }
+.search-result-card:nth-child(5)  { animation-delay: 0.25s; }
+.search-result-card:nth-child(6)  { animation-delay: 0.30s; }
+.search-result-card:nth-child(7)  { animation-delay: 0.35s; }
+.search-result-card:nth-child(8)  { animation-delay: 0.40s; }
+.search-result-card:nth-child(9)  { animation-delay: 0.45s; }
+.search-result-card:nth-child(10) { animation-delay: 0.50s; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Promotion Cards ──────────────────────────── */
+.promo-card {
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+.promo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(255, 193, 7, 0.15);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+/* Promotion Ribbon */
+.promo-ribbon {
+    position: absolute;
+    top: 12px; right: -35px;
+    background: linear-gradient(135deg, #dc3545, #e74c6f);
+    color: #fff;
+    padding: 4px 40px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
+/* Promo Code Box */
+.promo-code-box {
+    background: rgba(255, 193, 7, 0.05);
+    border: 2px dashed rgba(255, 193, 7, 0.3);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+/* ── News Cards ───────────────────────────────── */
+.news-card {
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+.news-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(255, 193, 7, 0.15);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+.featured-news-card {
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 193, 7, 0.1);
+}
+.featured-news-card:hover {
+    box-shadow: 0 16px 40px rgba(255, 193, 7, 0.2);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+/* ── Error Pages ──────────────────────────────── */
+.error-number {
+    text-shadow: 0 4px 40px rgba(255, 193, 7, 0.4);
+    animation: error-pulse 3s ease-in-out infinite;
+}
+@keyframes error-pulse {
+    0%, 100% { text-shadow: 0 4px 40px rgba(255, 193, 7, 0.3); }
+    50%      { text-shadow: 0 4px 60px rgba(255, 193, 7, 0.6); }
+}
+
+/* ── Contact Page ─────────────────────────────── */
+.contact-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+.contact-info-item:hover .contact-icon {
+    transform: scale(1.1);
+}
+
+/* ── Forgot Password Card ─────────────────────── */
+.forgot-pw-card {
+    border-radius: 20px;
+    border: 1px solid rgba(255, 193, 7, 0.15);
+}
+.forgot-icon i {
+    animation: float-hint 3s ease-in-out infinite;
+}
+
+/* ── Accordion Dark ───────────────────────────── */
+.accordion-button:not(.collapsed) {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    box-shadow: none;
+}
+.accordion-button::after {
+    filter: invert(1);
+}
+
+/* ── Member Badge Animation ───────────────────── */
+@keyframes badge-shimmer {
+    0%   { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+}
+.member-badge {
+    animation: badge-shimmer 3s linear infinite;
+    background-size: 200% 100%;
+}
+
+/* ── Loading Skeleton ─────────────────────────── */
+@keyframes skeleton-pulse {
+    0%   { opacity: 0.4; }
+    50%  { opacity: 0.7; }
+    100% { opacity: 0.4; }
+}
+.skeleton {
+    background: linear-gradient(90deg, #2d2d44 25%, #3d3d5c 50%, #2d2d44 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+/* ── Responsive Tweaks ────────────────────────── */
+@media (max-width: 768px) {
+    .ticket-3d-container {
+        max-width: 100%;
+    }
+    .cinema-detail-banner {
+        height: 200px !important;
+    }
+    .cinema-detail-banner h1 {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* ── Smooth Page Transitions ──────────────────── */
+main {
+    animation: pageLoad 0.4s ease-out;
+}
+@keyframes pageLoad {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cursor Pointer Utility ───────────────────── */
+.cursor-pointer { cursor: pointer; }
+
+/* ── Letter Spacing Utility ───────────────────── */
+.letter-spacing-2 { letter-spacing: 2px; }
+```
+
+---
+
+## ═══════════════════════════════════════════
+## TỔNG HỢP ROUTES MỚI
+## ═══════════════════════════════════════════
+
+```php
+<?php
+// config/routes.php — BỔ SUNG
+
+// ── Rạp phim ───────────────────────────────────
+$router->get('/cinemas',                    'CinemaController@index');
+$router->get('/cinemas/{slug}',             'CinemaController@detail');
+$router->get('/cinemas/{slug}/showtimes',   'CinemaController@showtimes');
+
+// ── Hồ sơ khách hàng ──────────────────────────
+$router->get('/profile',                    'ProfileController@index');
+$router->get('/profile/edit',               'ProfileController@editForm');
+$router->post('/profile/edit',              'ProfileController@update');
+$router->get('/profile/transactions',       'ProfileController@transactions');
+$router->get('/profile/change-password',    'ProfileController@changePasswordForm');
+$router->post('/profile/change-password',   'ProfileController@changePassword');
+
+// ── Chi tiết vé + QR ──────────────────────────
+$router->get('/my-tickets',                 'TicketController@myTickets');
+$router->get('/my-tickets/{id}',            'TicketController@ticketDetail');
+
+// ── Tìm kiếm ──────────────────────────────────
+$router->get('/search',                     'SearchController@index');
+
+// ── Khuyến mãi ─────────────────────────────────
+$router->get('/promotions',                 'PromotionController@index');
+$router->get('/promotions/{id}',            'PromotionController@detail');
+
+// ── Tin tức ────────────────────────────────────
+$router->get('/news',                       'NewsController@index');
+$router->get('/news/{slug}',                'NewsController@detail');
+
+// ── Liên hệ ────────────────────────────────────
+$router->get('/contact',                    'ContactController@index');
+$router->post('/contact',                   'ContactController@submit');
+
+// ── Quên mật khẩu ──────────────────────────────
+$router->get('/forgot-password',            'AuthController@forgotPasswordForm');
+$router->post('/forgot-password',           'AuthController@forgotPassword');
+$router->get('/reset-password',             'AuthController@resetPasswordForm');
+$router->post('/reset-password',            'AuthController@resetPassword');
+```
+
+---
+
+## ═══════════════════════════════════════════
+## NAVBAR CẬP NHẬT (thêm menu mới)
+## ═══════════════════════════════════════════
+
+```php
+<!-- Thêm vào navbar.php — phần <ul class="navbar-nav me-auto"> -->
+
+<li class="nav-item">
+    <a class="nav-link" href="/cinemas">
+        <i class="bi bi-geo-alt me-1"></i>Hệ thống rạp
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/promotions">
+        <i class="bi bi-tag me-1"></i>Ưu đãi
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/news">
+        <i class="bi bi-newspaper me-1"></i>Tin tức
+    </a>
+</li>
+
+<!-- Thêm vào phần user đã đăng nhập -->
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button"
+       data-bs-toggle="dropdown">
+        <img src="<?= htmlspecialchars(Session::get('user_avatar') ?: '/assets/img/default-avatar.png') ?>"
+             class="rounded-circle me-1" width="24" height="24" style="object-fit: cover;">
+        <?= htmlspecialchars(Session::get('user_name') ?: 'Tài khoản') ?>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+        <li><a class="dropdown-item" href="/profile">
+            <i class="bi bi-person me-2"></i>Hồ sơ
+        </a></li>
+        <li><a class="dropdown-item" href="/my-tickets">
+            <i class="bi bi-ticket-perforated me-2"></i>Vé của tôi
+        </a></li>
+        <li><a class="dropdown-item" href="/profile/transactions">
+            <i class="bi bi-receipt me-2"></i>Lịch sử giao dịch
+        </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form method="POST" action="/logout">
+                <?= csrf_field() ?>
+                <button type="submit" class="dropdown-item text-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                </button>
+            </form>
+        </li>
+    </ul>
+</li>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## FOOTER MỞ RỘNG
+## ═══════════════════════════════════════════
+
+```php
+<?php
+// views/partials/footer.php — Thay thế footer đơn giản
+?>
+<footer class="bg-black text-secondary pt-5 pb-3 mt-5 border-top border-secondary">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Cột 1: Thương hiệu -->
+            <div class="col-lg-4">
+                <h4 class="text-warning fw-bold mb-3">
+                    <i class="bi bi-film me-2"></i>CinemaX
+                </h4>
+                <p class="small">
+                    Hệ thống rạp chiếu phim hiện đại hàng đầu Việt Nam.
+                    Trải nghiệm điện ảnh đỉnh cao với công nghệ IMAX, 4DX, Dolby Atmos.
+                </p>
+                <!-- Social -->
+                <div class="d-flex gap-2 mt-3">
+                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-youtube"></i></a>
+                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-circle"><i class="bi bi-tiktok"></i></a>
+                </div>
+            </div>
+
+            <!-- Cột 2: Liên kết -->
+            <div class="col-6 col-lg-2">
+                <h6 class="text-light mb-3">Khám phá</h6>
+                <ul class="list-unstyled small">
+                    <li class="mb-2"><a href="/movies" class="text-secondary text-decoration-none">Phim đang chiếu</a></li>
+                    <li class="mb-2"><a href="/movies?status=coming_soon" class="text-secondary text-decoration-none">Phim sắp chiếu</a></li>
+                    <li class="mb-2"><a href="/cinemas" class="text-secondary text-decoration-none">Hệ thống rạp</a></li>
+                    <li class="mb-2"><a href="/promotions" class="text-secondary text-decoration-none">Khuyến mãi</a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 3: Thông tin -->
+            <div class="col-6 col-lg-2">
+                <h6 class="text-light mb-3">Hỗ trợ</h6>
+                <ul class="list-unstyled small">
+                    <li class="mb-2"><a href="/contact" class="text-secondary text-decoration-none">Liên hệ</a></li>
+                    <li class="mb-2"><a href="/news" class="text-secondary text-decoration-none">Tin tức</a></li>
+                    <li class="mb-2"><a href="#" class="text-secondary text-decoration-none">Điều khoản sử dụng</a></li>
+                    <li class="mb-2"><a href="#" class="text-secondary text-decoration-none">Chính sách bảo mật</a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 4: Liên hệ -->
+            <div class="col-lg-4">
+                <h6 class="text-light mb-3">Liên hệ</h6>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-telephone me-2 text-warning"></i>
+                        Hotline: <strong class="text-light">1900 636 018</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-envelope me-2 text-warning"></i>
+                        Email: support@cinemax.vn
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-geo-alt me-2 text-warning"></i>
+                        123 Nguyễn Huệ, Q.1, TP.HCM
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-clock me-2 text-warning"></i>
+                        Giờ làm việc: 08:00 - 23:30
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="border-secondary my-4">
+
+        <!-- Copyright -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <small>&copy; <?= date('Y') ?> CinemaX. All rights reserved.</small>
+            <small>Made with <i class="bi bi-heart-fill text-danger"></i> in Vietnam</small>
+        </div>
+    </div>
+</footer>
+```
+
+---
+
+## ═══════════════════════════════════════════
+## CHECKLIST TỔNG HỢP CHO AI AGENT
+## ═══════════════════════════════════════════
+
+| # | Hạng mục | File cần tạo/sửa | Trạng thái |
+|---|----------|-------------------|------------|
+| 1 | Bảng `cinemas` | `migrations/009_create_cinemas.sql` | ⬜ |
+| 2 | Liên kết `rooms.cinema_id` | `migrations/010_add_cinema_id_to_rooms.sql` | ⬜ |
+| 3 | Seed dữ liệu rạp | `migrations/011_seed_cinemas.sql` | ⬜ |
+| 4 | Mở rộng bảng `users` | `migrations/012_extend_users_profile.sql` | ⬜ |
+| 5 | CinemaController | `app/Controllers/CinemaController.php` | ⬜ |
+| 6 | ProfileController | `app/Controllers/ProfileController.php` | ⬜ |
+| 7 | TicketController | `app/Controllers/TicketController.php` | ⬜ |
+| 8 | SearchController | `app/Controllers/SearchController.php` | ⬜ |
+| 9 | PromotionController (frontend) | `app/Controllers/PromotionController.php` | ⬜ |
+| 10 | NewsController | `app/Controllers/NewsController.php` | ⬜ |
+| 11 | ContactController | `app/Controllers/ContactController.php` | ⬜ |
+| 12 | View: Danh sách rạp | `views/cinemas/index.php` | ⬜ |
+| 13 | View: Chi tiết rạp | `views/cinemas/detail.php` | ⬜ |
+| 14 | View: Hồ sơ KH | `views/profile/index.php` | ⬜ |
+| 15 | View: Chỉnh sửa hồ sơ | `views/profile/edit.php` | ⬜ |
+| 16 | View: Chi tiết vé + QR | `views/movie/ticket_detail.php` | ⬜ |
+| 17 | View: Lịch sử giao dịch | `views/profile/transactions.php` | ⬜ |
+| 18 | View: Tìm kiếm | `views/search/index.php` | ⬜ |
+| 19 | View: Khuyến mãi | `views/promotions/index.php` | ⬜ |
+| 20 | View: Đổi mật khẩu | `views/profile/change_password.php` | ⬜ |
+| 21 | View: Quên mật khẩu | `views/auth/forgot_password.php` | ⬜ |
+| 22 | View: Tin tức | `views/news/index.php` | ⬜ |
+| 23 | View: Liên hệ | `views/contact/index.php` | ⬜ |
+| 24 | View: 404 | `views/errors/404.php` | ⬜ |
+| 25 | View: 500 | `views/errors/500.php` | ⬜ |
+| 26 | JS: QR Code + Lật vé | `public/assets/js/ticket_qr.js` | ⬜ |
+| 27 | CSS mở rộng | `public/assets/css/app.css` | ⬜ |
+| 28 | Cập nhật Navbar | `views/partials/navbar.php` | ⬜ |
+| 29 | Cập nhật Footer | `views/partials/footer.php` | ⬜ |
+| 30 | Routes mới | `config/routes.php` | ⬜ |
+
+
+## ???????????????????????????????????????????
+## PH?N M? R?NG 2: N�NG C?P CHI?U D�I & TR?I NGHI?M TRANG
+## ???????????????????????????????????????????
+
+C�c trang d�?i ��y ��?c b? sung th�m nhi?u Component �? t�ng �? d�i v� tr?i nghi?m ng�?i d�ng.
+
+### 1. Trang Ch? (Home Page)
+B? sung Hero Carousel (thay banner t?nh), Quick Booking Bar, Kh?i �u �?i (Featured Promotions), Kh?i C�ng Ngh? (Cinema Experience), v� Kh?i Tin T?c (Latest News).
+
+### 2. Trang H? S� (Profile)
+B? sung Th? Th�nh Vi�n Ph�n H?ng (Tier Card) 3D v� V� Voucher (Voucher Wallet).
+
+### 3. Trang Chi Ti?t R?p (Cinema Detail)
+B? sung B?ng Gi� V� Ti�u Chu?n v� Gallery H?nh ?nh kh�ng gian r?p.
+
+
+## ???????????????????????????????????????????
+## PH?N M? R?NG 3: HI?U ?NG CU?N (AOS) & �?I KI?N TRANG CH?
+## ???????????????????????????????????????????
+
+### 1. T�ch h?p AOS (Animate On Scroll)
+S? d?ng th� vi?n AOS k?t h?p CSS transition c?a Bootstrap 5 �? t?o ra tr?i nghi?m ng�?i d�ng s?ng �?ng: c�c kh?i n?i dung bay l�n (fade-up), tr�?t ngang (fade-left/right), ho?c ph�ng to (zoom-in) khi cu?n chu?t �?n.
+
+### 2. C�c Section b? sung m?i cho Trang Ch?:
+- **Phim Th?nh H�nh (Trending Now)**: Th? phim si�u to, tr�?t ngang (horizontal scroll snap) �? showcase c�c si�u ph?m hot nh?t.
+- **Qu� t?ng & B?p n�?c (Concessions)**: Qu?ng b� c�c s?n ph?m ph? tr? mang l?i doanh thu ch�nh cho r?p.
+- **T?i ?ng D?ng (App Download)**: Banner ch�o ?n t�?ng k�u g?i ng�?i d�ng chuy?n �?i sang n?n t?ng Mobile App.
+- **�?i T�c �?ng H�nh (Partners)**: D?i logo c�c th��ng hi?u thanh to�n l?n.
+
+> Nh? 4 Section n�y, trang ch? hi?n t?i �?t chu?n m?t Landing Page chuy�n nghi?p, k?t h?p t?i �a c�c hi?u ?ng 3D v� CSS Keyframes t? frontend_skills.md.

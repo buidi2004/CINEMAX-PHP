@@ -1,0 +1,2 @@
+﻿ALTER TABLE tickets ADD COLUMN food_items JSON NULL;
+ALTER TABLE tickets ADD COLUMN food_price DECIMAL(10, 2) DEFAULT 0;

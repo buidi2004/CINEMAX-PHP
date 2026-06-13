@@ -1,0 +1,56 @@
+<?php
+define('ROOT_PATH', dirname(__DIR__));
+define('CONFIG_PATH', ROOT_PATH . '/config');
+
+if (file_exists(ROOT_PATH . '/.env')) {
+    $lines = file(ROOT_PATH . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (str_starts_with(trim($line), '#')) continue;
+        if (strpos($line, '=') === false) continue;
+        [$name, $value] = explode('=', $line, 2);
+        $_ENV[trim($name)] = trim($value);
+    }
+}
+
+require_once ROOT_PATH . '/app/Core/Database.php';
+
+use App\Core\Database;
+
+spl_autoload_register(function (string $class) {
+    if (str_starts_with($class, 'App\\')) {
+        $relativeClass = substr($class, 4);
+        $path = ROOT_PATH . '/app/' . str_replace('\\', '/', $relativeClass) . '.php';
+        if (file_exists($path)) {
+            require_once $path;
+        }
+    }
+});
+
+try {
+    $pdo = Database::getInstance();
+    echo "Connected to the database successfully.\n";
+
+    $files = [
+        '010_create_cinemas.sql',
+        '011_add_cinema_id_to_rooms.sql',
+        '012_seed_cinemas.sql',
+        '013_extend_users_profile.sql'
+    ];
+
+    foreach ($files as $file) {
+        $filePath = __DIR__ . '/' . $file;
+        if (!file_exists($filePath)) {
+            echo "Warning: File $file not found.\n";
+            continue;
+        }
+        echo "Running migration: $file...\n";
+        $sql = file_get_contents($filePath);
+        $pdo->exec($sql);
+        echo "Successfully run $file.\n";
+    }
+
+    echo "All NEW migrations completed successfully!\n";
+} catch (\Exception $e) {
+    echo "Error running migrations: " . $e->getMessage() . "\n";
+    exit(1);
+}

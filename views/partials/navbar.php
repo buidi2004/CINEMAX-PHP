@@ -5,7 +5,7 @@ use App\Core\Session;
 $currentUserId = Session::get('user_id');
 $currentRole   = Session::get('user_role');
 ?>
-<nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom border-light shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold text-warning fs-3" href="/">
             <?php if(!empty($appSettings['site_logo'])): ?>
@@ -48,7 +48,7 @@ $currentRole   = Session::get('user_role');
             <!-- Search mini -->
             <form class="d-flex me-3 d-none d-lg-flex" action="/search" method="GET">
                 <div class="input-group input-group-sm">
-                    <input type="text" name="q" class="form-control bg-dark border-secondary text-light" placeholder="Tìm phim..." style="width: 160px;">
+                    <input type="text" name="q" class="form-control bg-light border-light text-dark" placeholder="Tìm phim..." style="width: 160px;">
                     <button type="submit" class="btn btn-outline-warning btn-sm"><i class="bi bi-search"></i></button>
                 </div>
             </form>
@@ -72,7 +72,7 @@ $currentRole   = Session::get('user_role');
                                  alt="avatar" onerror="this.src='/assets/images/default-avatar.png'">
                             <span class="d-none d-lg-inline"><?= htmlspecialchars(Session::get('user_name') ?: 'Tài khoản') ?></span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-end">
                             <li>
                                 <a class="dropdown-item" href="/profile">
                                     <i class="bi bi-person me-2"></i>Hồ sơ
@@ -101,7 +101,7 @@ $currentRole   = Session::get('user_role');
                     </li>
                 <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link text-light me-3" href="/login">Đăng nhập</a>
+                        <a class="nav-link text-dark me-3" href="/login">Đăng nhập</a>
                     </li>
                     <li class="nav-item">
                         <a class="btn btn-sm btn-warning fw-semibold" href="/register">Đăng ký</a>
@@ -111,3 +111,4 @@ $currentRole   = Session::get('user_role');
         </div>
     </div>
 </nav>
+

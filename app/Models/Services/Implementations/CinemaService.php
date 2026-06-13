@@ -26,6 +26,11 @@ class CinemaService implements ICinemaService
         return $this->cinemaRepo->findAll($province);
     }
 
+    public function findNearest(float $lat, float $lng, int $limit = 3): array
+    {
+        return $this->cinemaRepo->findNearest($lat, $lng, $limit);
+    }
+
     public function getBySlug(string $slug): Cinema
     {
         $cinema = $this->cinemaRepo->findBySlug($slug);

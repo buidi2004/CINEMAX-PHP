@@ -12,6 +12,11 @@ interface ICinemaService
     public function getAll(?string $province = null): array;
 
     /**
+     * Find nearest cinemas based on location
+     */
+    public function findNearest(float $lat, float $lng, int $limit = 3): array;
+
+    /**
      * Get cinema by slug
      * @throws \App\Core\Exceptions\NotFoundException
      */

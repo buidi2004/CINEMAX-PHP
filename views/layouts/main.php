@@ -2,14 +2,14 @@
 // views/layouts/main.php
 ?>
 <!DOCTYPE html>
-<html lang="vi" data-bs-theme="dark">
+<html lang="vi" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? 'CinemaX - Đặt vé xem phim trực tuyến') ?></title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
-    <!-- Bootstrap 5.3 Dark Mode -->
+    <!-- Bootstrap 5.3 Light Mode -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="/assets/css/oauth.css?v=<?= time() ?>">
 </head>
 
-<body class="bg-dark text-light min-vh-100 d-flex flex-column">
+<body class="bg-light text-dark min-vh-100 d-flex flex-column">
 
     <!-- Navbar -->
     <?php require VIEW_PATH . '/partials/navbar.php'; ?>

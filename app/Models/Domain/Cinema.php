@@ -19,6 +19,7 @@ class Cinema extends BaseModel
     public array   $facilities;  // ['IMAX', '4DX', 'Dolby Atmos', ...]
     public bool    $isActive;
     public string  $createdAt;
+    public ?float  $distance = null;
     
     public static function fromArray(array $data): static
     {
@@ -51,6 +52,11 @@ class Cinema extends BaseModel
         
         $cinema->isActive = (bool) ($data['is_active'] ?? true);
         $cinema->createdAt = $data['created_at'];
+        
+        if (isset($data['distance'])) {
+            $cinema->distance = (float) $data['distance'];
+        }
+        
         return $cinema;
     }
     

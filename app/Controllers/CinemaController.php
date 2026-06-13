@@ -30,6 +30,45 @@ class CinemaController extends BaseController
         ]);
     }
 
+    // GET /api/cinemas/nearest
+    public function nearest(): void
+    {
+        header('Content-Type: application/json');
+        
+        $lat = isset($_GET['lat']) ? (float) $_GET['lat'] : null;
+        $lng = isset($_GET['lng']) ? (float) $_GET['lng'] : null;
+
+        if (!$lat || !$lng) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Missing lat or lng parameters']);
+            return;
+        }
+
+        try {
+            $cinemas = $this->cinemaService->findNearest($lat, $lng, 3);
+            
+            $result = array_map(function($cinema) {
+                return [
+                    'id' => $cinema->id,
+                    'name' => $cinema->name,
+                    'slug' => $cinema->slug,
+                    'province' => $cinema->province,
+                    'address' => $cinema->getFullAddress(),
+                    'distance' => round($cinema->distance, 1), // round to 1 decimal place
+                    'image_url' => $cinema->imageUrl
+                ];
+            }, $cinemas);
+
+            echo json_encode([
+                'success' => true,
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Server error while finding nearest cinemas']);
+        }
+    }
+
     // GET /cinemas/{slug}
     public function detail(string $slug): void
     {

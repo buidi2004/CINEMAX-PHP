@@ -29,6 +29,30 @@ class CinemaRepository implements ICinemaRepository
         return array_map(fn($row) => Cinema::fromArray($row), $rows);
     }
     
+    public function findNearest(float $lat, float $lng, int $limit = 3): array
+    {
+        $sql = "
+            SELECT *,
+            ( 6371 * acos( cos( radians(:lat) ) * cos( radians( latitude ) ) 
+            * cos( radians( longitude ) - radians(:lng) ) + sin( radians(:lat) ) 
+            * sin( radians( latitude ) ) ) ) AS distance
+            FROM cinemas
+            WHERE is_active = TRUE AND latitude IS NOT NULL AND longitude IS NOT NULL
+            ORDER BY distance
+            LIMIT :limit
+        ";
+        
+        $stmt = $this->pdo->prepare($sql);
+        // PDO bindParam is needed for LIMIT integer
+        $stmt->bindValue(':lat', $lat);
+        $stmt->bindValue(':lng', $lng);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $rows = $stmt->fetchAll();
+        return array_map(fn($row) => Cinema::fromArray($row), $rows);
+    }
+    
     public function findById(int $id): ?Cinema
     {
         $stmt = $this->pdo->prepare('SELECT * FROM cinemas WHERE id = ?');

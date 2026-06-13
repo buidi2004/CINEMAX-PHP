@@ -15,27 +15,27 @@ $remainingSeconds = max(0, strtotime($booking->holdExpiryTime) - time());
         </div>
 
         <!-- Thông tin đặt vé -->
-        <div class="card bg-secondary border-0 shadow mb-4" style="background-color: #1a1a2e !important; border: 1px solid #2d2d44 !important;">
-            <div class="card-header bg-black py-3">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-film me-2 text-warning"></i>Chi tiết đặt vé</h5>
+        <div class="card bg-white border-0 shadow mb-4" style=" border: 1px solid #dee2e6 !important;">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-film me-2 text-danger"></i>Chi tiết đặt vé</h5>
             </div>
             <div class="card-body p-4">
-                <h4 class="text-warning fw-bold mb-3"><?= htmlspecialchars($booking->movieTitle) ?></h4>
+                <h4 class="text-danger fw-bold mb-3"><?= htmlspecialchars($booking->movieTitle) ?></h4>
                 <div class="row g-2 mb-3">
                     <div class="col-sm-6 text-secondary">
-                        <i class="bi bi-calendar3 me-2 text-light"></i>Ngày chiếu: <span class="text-light fw-semibold"><?= date('d/m/Y', strtotime($booking->showDate)) ?></span>
+                        <i class="bi bi-calendar3 me-2 text-dark"></i>Ngày chiếu: <span class="text-dark fw-semibold"><?= date('d/m/Y', strtotime($booking->showDate)) ?></span>
                     </div>
                     <div class="col-sm-6 text-secondary">
-                        <i class="bi bi-clock me-2 text-light"></i>Suất chiếu: <span class="text-light fw-semibold"><?= date('H:i', strtotime($booking->startTime)) ?></span>
+                        <i class="bi bi-clock me-2 text-dark"></i>Suất chiếu: <span class="text-dark fw-semibold"><?= date('H:i', strtotime($booking->startTime)) ?></span>
                     </div>
                     <div class="col-sm-6 text-secondary">
-                        <i class="bi bi-door-open me-2 text-light"></i>Phòng chiếu: <span class="text-light fw-semibold"><?= htmlspecialchars($booking->roomName) ?></span>
+                        <i class="bi bi-door-open me-2 text-dark"></i>Phòng chiếu: <span class="text-dark fw-semibold"><?= htmlspecialchars($booking->roomName) ?></span>
                     </div>
                     <div class="col-sm-6 text-secondary">
-                        <i class="bi bi-ticket me-2 text-light"></i>Số lượng: <span class="text-light fw-semibold"><?= $booking->quantity ?> vé</span>
+                        <i class="bi bi-ticket me-2 text-dark"></i>Số lượng: <span class="text-dark fw-semibold"><?= $booking->quantity ?> vé</span>
                     </div>
                 </div>
-                <hr class="border-secondary">
+                <hr class="border-light">
                 <div class="mb-0">
                     <label class="text-secondary small fw-bold d-block mb-2">Ghế ngồi đã chọn:</label>
                     <?php foreach ($booking->selectedSeats as $seat): ?>
@@ -46,12 +46,12 @@ $remainingSeconds = max(0, strtotime($booking->holdExpiryTime) - time());
         </div>
 
         <!-- Mã giảm giá -->
-        <div class="card bg-secondary border-0 shadow mb-4" style="background-color: #1a1a2e !important; border: 1px solid #2d2d44 !important;">
+        <div class="card bg-white border-0 shadow mb-4" style=" border: 1px solid #dee2e6 !important;">
             <div class="card-body p-4">
-                <label class="form-label text-light fw-bold">Mã giảm giá (Voucher)</label>
+                <label class="form-label text-dark fw-bold">Mã giảm giá (Voucher)</label>
                 <div class="input-group">
                     <input type="text" id="promo-input"
-                           class="form-control bg-dark text-light border-secondary py-2"
+                           class="form-control bg-white text-dark border-light py-2"
                            placeholder="Nhập mã giảm giá (ví dụ: GIAM20)..."
                            value="<?= htmlspecialchars($booking->promotionCode ?? '') ?>">
                     <button class="btn btn-warning fw-bold px-4" id="btn-apply-promo" type="button">
@@ -63,29 +63,29 @@ $remainingSeconds = max(0, strtotime($booking->holdExpiryTime) - time());
         </div>
         <!-- Dịch vụ Bắp nước -->
         <?php if (!empty($food_beverages)): ?>
-        <div class="card bg-secondary border-0 shadow mb-4" style="background-color: #1a1a2e !important; border: 1px solid #2d2d44 !important;">
-            <div class="card-header bg-black py-3">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-cup-straw me-2 text-warning"></i>Bắp nước (Tùy chọn)</h5>
+        <div class="card bg-white border-0 shadow mb-4" style=" border: 1px solid #dee2e6 !important;">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-cup-straw me-2 text-danger"></i>Bắp nước (Tùy chọn)</h5>
             </div>
             <div class="card-body p-4">
                 <?php foreach ($food_beverages as $fb): ?>
-                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-3 mb-3 fb-item" data-id="<?= $fb['id'] ?>" data-price="<?= $fb['price'] ?>" data-name="<?= htmlspecialchars($fb['name']) ?>">
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-light pb-3 mb-3 fb-item" data-id="<?= $fb['id'] ?>" data-price="<?= $fb['price'] ?>" data-name="<?= htmlspecialchars($fb['name']) ?>">
                         <div class="d-flex align-items-center">
                             <?php if ($fb['image_url']): ?>
                                 <img src="<?= htmlspecialchars($fb['image_url']) ?>" style="width: 50px; height: 50px; object-fit: cover;" class="rounded me-3">
                             <?php else: ?>
-                                <div class="bg-dark rounded d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <div class="bg-white rounded d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
                                     <i class="bi bi-cup text-secondary"></i>
                                 </div>
                             <?php endif; ?>
                             <div>
-                                <h6 class="text-light mb-1"><?= htmlspecialchars($fb['name']) ?></h6>
-                                <span class="text-warning fw-bold"><?= number_format($fb['price'], 0, ',', '.') ?>₫</span>
+                                <h6 class="text-dark mb-1"><?= htmlspecialchars($fb['name']) ?></h6>
+                                <span class="text-danger fw-bold"><?= number_format($fb['price'], 0, ',', '.') ?>₫</span>
                             </div>
                         </div>
                         <div class="input-group" style="width: 120px;">
                             <button class="btn btn-outline-secondary btn-sm fb-minus" type="button"><i class="bi bi-dash"></i></button>
-                            <input type="text" class="form-control text-center bg-dark text-light border-secondary p-0 fb-qty" value="0" readonly>
+                            <input type="text" class="form-control text-center bg-white text-dark border-light p-0 fb-qty" value="0" readonly>
                             <button class="btn btn-outline-warning btn-sm fb-plus" type="button"><i class="bi bi-plus"></i></button>
                         </div>
                     </div>
@@ -94,15 +94,15 @@ $remainingSeconds = max(0, strtotime($booking->holdExpiryTime) - time());
         </div>
         <?php endif; ?>
         <!-- Tổng tiền -->
-        <div class="card bg-secondary border-0 shadow mb-4" style="background-color: #1a1a2e !important; border: 1px solid #2d2d44 !important;">
+        <div class="card bg-white border-0 shadow mb-4" style=" border: 1px solid #dee2e6 !important;">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-secondary">Tạm tính (<span id="ticket-qty"><?= $booking->quantity ?></span> vé):</span>
-                    <span class="fw-semibold text-light" id="ticket-subtotal-display" data-subtotal="<?= $booking->subtotal ?>"><?= number_format($booking->subtotal, 0, ',', '.') ?>₫</span>
+                    <span class="fw-semibold text-dark" id="ticket-subtotal-display" data-subtotal="<?= $booking->subtotal ?>"><?= number_format($booking->subtotal, 0, ',', '.') ?>₫</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2" id="food-row" style="display:none!important">
                     <span class="text-secondary">Combo Bắp nước:</span>
-                    <span class="fw-semibold text-light" id="food-display">+0₫</span>
+                    <span class="fw-semibold text-dark" id="food-display">+0₫</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2" id="discount-row"
                      style="<?= $booking->discount > 0 ? '' : 'display:none!important' ?>">
@@ -111,10 +111,10 @@ $remainingSeconds = max(0, strtotime($booking->holdExpiryTime) - time());
                         -<?= number_format($booking->discount, 0, ',', '.') ?>₫
                     </span>
                 </div>
-                <hr class="border-secondary">
+                <hr class="border-light">
                 <div class="d-flex justify-content-between align-items-center">
-                    <strong class="text-light fs-5">TỔNG THANH TOÁN:</strong>
-                    <strong class="text-warning fs-3" id="total-display">
+                    <strong class="text-dark fs-5">TỔNG THANH TOÁN:</strong>
+                    <strong class="text-danger fs-3" id="total-display">
                         <?= number_format($booking->totalPrice, 0, ',', '.') ?>₫
                     </strong>
                 </div>
@@ -131,32 +131,32 @@ $remainingSeconds = max(0, strtotime($booking->holdExpiryTime) - time());
             <input type="hidden" name="food_price" id="final-food-price" value="0">
 
             <div class="mb-4">
-                <label class="form-label fw-bold text-light mb-3">Phương thức thanh toán</label>
+                <label class="form-label fw-bold text-dark mb-3">Phương thức thanh toán</label>
                 <div class="d-grid gap-3">
-                    <div class="form-check bg-black rounded p-3 border border-secondary shadow-sm hover-border-warning">
+                    <div class="form-check bg-light rounded p-3 border border-light shadow-sm hover-border-warning">
                         <input class="form-check-input ms-0 me-3" type="radio" name="payment_method"
                                id="pay-vnpay" value="vnpay" required>
-                        <label class="form-check-label text-light w-100" for="pay-vnpay" style="cursor: pointer;">
+                        <label class="form-check-label text-dark w-100" for="pay-vnpay" style="cursor: pointer;">
                             <i class="bi bi-credit-card me-2 text-primary fs-5"></i>
                             <strong class="fs-6">VNPay</strong>
                             <small class="text-secondary d-block mt-1">Thẻ ATM nội địa, Internet Banking, Quét mã QR</small>
                         </label>
                     </div>
                     
-                    <div class="form-check bg-black rounded p-3 border border-secondary shadow-sm hover-border-warning">
+                    <div class="form-check bg-light rounded p-3 border border-light shadow-sm hover-border-warning">
                         <input class="form-check-input ms-0 me-3" type="radio" name="payment_method"
                                id="pay-momo" value="momo">
-                        <label class="form-check-label text-light w-100" for="pay-momo" style="cursor: pointer;">
+                        <label class="form-check-label text-dark w-100" for="pay-momo" style="cursor: pointer;">
                             <i class="bi bi-phone me-2 text-danger fs-5"></i>
                             <strong class="fs-6">Ví điện tử MoMo</strong>
                             <small class="text-secondary d-block mt-1">Thanh toán nhanh qua ứng dụng MoMo</small>
                         </label>
                     </div>
 
-                    <div class="form-check bg-black rounded p-3 border border-secondary shadow-sm hover-border-warning">
+                    <div class="form-check bg-light rounded p-3 border border-light shadow-sm hover-border-warning">
                         <input class="form-check-input ms-0 me-3" type="radio" name="payment_method"
                                id="pay-cash" value="cash">
-                        <label class="form-check-label text-light w-100" for="pay-cash" style="cursor: pointer;">
+                        <label class="form-check-label text-dark w-100" for="pay-cash" style="cursor: pointer;">
                             <i class="bi bi-cash-coin me-2 text-success fs-5"></i>
                             <strong class="fs-6">Thanh toán tại quầy</strong>
                             <small class="text-secondary d-block mt-1">Hoàn thành giao dịch trực tiếp tại rạp</small>
@@ -256,3 +256,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+

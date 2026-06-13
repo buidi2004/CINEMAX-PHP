@@ -32,6 +32,7 @@ $router->get('/my-tickets',               'MovieController@myTickets');
 $router->get('/my-tickets/{id}',          'TicketController@ticketDetail');
 
 // ── Rạp phim ──────────────────────────────────
+$router->get('/api/cinemas/nearest',      'CinemaController@nearest');
 $router->get('/cinemas',                  'CinemaController@index');
 $router->get('/cinemas/{slug}',           'CinemaController@detail');
 

@@ -13,6 +13,15 @@ interface ICinemaRepository
     public function findAll(?string $province = null): array;
     
     /**
+     * Find nearest cinemas based on latitude and longitude
+     * @param float $lat
+     * @param float $lng
+     * @param int $limit
+     * @return Cinema[]
+     */
+    public function findNearest(float $lat, float $lng, int $limit = 3): array;
+    
+    /**
      * Find cinema by ID
      * @param int $id
      * @return Cinema|null

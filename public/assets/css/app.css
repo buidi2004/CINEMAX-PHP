@@ -20,10 +20,10 @@ body {
     border-radius: 16px;
     background: linear-gradient(
         135deg,
-        #0a0a14 0%,
-        #111128 40%,
-        #1a1a3e 70%,
-        #0f0f1b 100%
+        #f8f9fa 0%,
+        #e9ecef 40%,
+        #dee2e6 70%,
+        #ced4da 100%
     );
     border: 1px solid #222244;
 }
@@ -147,7 +147,7 @@ body {
    #8  THẺ SUẤT CHIẾU ĐẸP — Showtime cards
    ══════════════════════════════════════════════════════════ */
 .showtime-card {
-    background: linear-gradient(135deg, #0f0f1b, #1a1a2e);
+    background: linear-gradient(135deg, #ced4da, #e9ecef);
     border: 1px solid #2d2d44;
     border-radius: 12px;
     padding: 1.25rem;
@@ -422,12 +422,12 @@ body {
     align-items: center;
 }
 .ticket-front {
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    background: linear-gradient(135deg, #e9ecef, #f8f9fa);
     border: 1px solid #ffc107;
     color: #fff;
 }
 .ticket-back {
-    background: linear-gradient(135deg, #16213e, #0f0f1b);
+    background: linear-gradient(135deg, #f8f9fa, #ced4da);
     border: 1px solid #ffc107;
     color: #fff;
     transform: rotateY(180deg);
@@ -629,7 +629,7 @@ body {
 
 /* ── Cinema Hero ──────────────────────────────── */
 .cinema-hero {
-    background: linear-gradient(135deg, #0a0a14, #111128 40%, #1a1a3e 70%, #0f0f1b);
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef 40%, #dee2e6 70%, #ced4da);
     border-radius: 16px; border: 1px solid #222244;
     position: relative; overflow: hidden;
 }
@@ -678,12 +678,12 @@ body {
     backface-visibility: hidden; border-radius: 20px; overflow: hidden;
 }
 .ticket-3d-front {
-    background: linear-gradient(145deg, #0f0f1b, #1a1a3e 50%, #0f0f1b);
+    background: linear-gradient(145deg, #ced4da, #dee2e6 50%, #ced4da);
     border: 2px solid rgba(255, 193, 7, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 .ticket-3d-back {
-    background: linear-gradient(145deg, #0f0f1b, #16213e 50%, #0f0f1b);
+    background: linear-gradient(145deg, #ced4da, #f8f9fa 50%, #ced4da);
     border: 2px solid rgba(255, 193, 7, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     transform: rotateY(180deg);
@@ -696,7 +696,7 @@ body {
 }
 .ticket-tear-line::before, .ticket-tear-line::after {
     content: ''; position: absolute; top: -12px;
-    width: 24px; height: 24px; background: #0f0f1b; border-radius: 50%;
+    width: 24px; height: 24px; background: #ced4da; border-radius: 50%;
 }
 .ticket-tear-line::before { left: -32px; }
 .ticket-tear-line::after  { right: -32px; }
@@ -724,7 +724,7 @@ body {
 /* ── Search Bar Glow ──────────────────────────── */
 .search-bar-glow:focus-within { box-shadow: 0 0 20px rgba(255, 193, 7, 0.3); }
 .search-hero {
-    background: linear-gradient(135deg, #0a0a14, #1a1a3e, #0f0f1b);
+    background: linear-gradient(135deg, #f8f9fa, #dee2e6, #ced4da);
     border-radius: 16px; border: 1px solid #222244; padding: 3rem 2rem;
 }
 
@@ -831,7 +831,8 @@ main { animation: pageLoad 0.4s ease-out; }
 }
 
 /* ?? N�ng c?p Giao di?n ?? */
-.quick-book-bar { backdrop-filter: blur(10px); background-color: rgba(26, 26, 46, 0.9) !important; }
+.quick-book-bar { backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.9) !important; }
 .experience-card:hover { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-color: #ffc107 !important; }
 .tier-card-inner { box-shadow: 0 10px 40px rgba(255, 193, 7, 0.2); }
+
 

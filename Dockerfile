@@ -7,7 +7,7 @@ COPY composer.json ./
 RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist || true
 
 # Stage 2: Production image
-FROM webdevops/php-nginx:alpine
+FROM webdevops/php-nginx:8.3-alpine
 
 # Set Document Root for Nginx
 ENV WEB_DOCUMENT_ROOT=/app/public

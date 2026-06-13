@@ -65,6 +65,18 @@
 <div class="card bg-white border-0 shadow-lg mb-5 rounded-4 overflow-hidden quick-book-bar" data-aos="fade-up" data-aos-delay="200" style="border: 1px solid rgba(255,193,7,0.3) !important; margin-top: 2rem; position: relative; z-index: 10;">
     <div class="card-body p-4">
         <div class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label text-warning fw-bold small"><i class="bi bi-tags me-1"></i>Thể Loại</label>
+                <select class="form-select bg-light border-0 text-dark rounded-pill">
+                    <option>-- Tất cả --</option>
+                    <option>Hành Động</option>
+                    <option>Khoa Học Viễn Tưởng</option>
+                    <option>Tình Cảm</option>
+                    <option>Kinh Dị</option>
+                    <option>Hài Hước</option>
+                    <option>Phiêu Lưu</option>
+                </select>
+            </div>
             <div class="col-md-3">
                 <label class="form-label text-warning fw-bold small"><i class="bi bi-film me-1"></i>Chọn Phim</label>
                 <select class="form-select bg-light border-0 text-dark rounded-pill">
@@ -82,11 +94,11 @@
                     <option>CinemaX Gò Vấp</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label text-warning fw-bold small"><i class="bi bi-calendar3 me-1"></i>Ngày chiếu</label>
                 <input type="date" class="form-control bg-light border-0 text-dark rounded-pill" value="<?= date('Y-m-d') ?>">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <button class="btn btn-warning w-100 rounded-pill fw-bold" onclick="location.href='/search'"><i class="bi bi-search me-1"></i>Tìm Suất</button>
             </div>
         </div>

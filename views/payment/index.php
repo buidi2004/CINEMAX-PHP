@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // views/payment/index.php
 $remainingSeconds = max(0, strtotime($booking->holdExpiryTime) - time());
 ?>
@@ -256,4 +256,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+
 

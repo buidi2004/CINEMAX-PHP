@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // views/home/index.php
 ?>
 <!-- #1 Hero Carousel -->
@@ -16,7 +16,7 @@
                 <div class="carousel-caption text-start bottom-0 pb-4 pb-md-5 ps-3 ps-md-4 w-100" style="background: linear-gradient(transparent, rgba(0,0,0,0.95)); left: 0; right: 0;">
                     <span class="badge bg-danger mb-2 px-2 px-md-3 py-1 py-md-2 fs-7 fs-md-6" data-aos="fade-up" data-aos-delay="200">ĐANG CHIẾU</span>
                     <h1 class="display-6 display-md-4 fw-bold text-warning text-shadow mb-1" data-aos="fade-up" data-aos-delay="400">AVENGERS: ENDGAME</h1>
-                    <p class="fs-6 fs-md-5 text-light d-none d-sm-block" data-aos="fade-up" data-aos-delay="600">Trận chiến cuối cùng của các siêu anh hùng. Khởi chiếu 26/04/2026.</p>
+                    <p class="fs-6 fs-md-5 text-dark d-none d-sm-block" data-aos="fade-up" data-aos-delay="600">Trận chiến cuối cùng của các siêu anh hùng. Khởi chiếu 26/04/2026.</p>
                     <div class="mt-2 mt-md-3" data-aos="fade-up" data-aos-delay="800">
                         <a href="/movies/1" class="btn btn-warning btn-sm btn-md-lg fw-bold px-3 px-md-4 rounded-pill me-2"><i class="bi bi-ticket-perforated me-1 me-md-2"></i>Đặt Vé Ngay</a>
                         <button class="btn btn-outline-dark btn-sm btn-md-lg rounded-pill px-3 px-md-4"><i class="bi bi-play-circle me-1 me-md-2"></i>Xem Trailer</button>
@@ -30,7 +30,7 @@
                 <img src="https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?q=80&w=1200&auto=format&fit=crop" class="w-100 h-100" style="object-fit: cover; filter: brightness(0.6);" alt="Slide 2">
                 <div class="carousel-caption text-start bottom-0 pb-4 pb-md-5 ps-3 ps-md-4 w-100" style="background: linear-gradient(transparent, rgba(0,0,0,0.95)); left: 0; right: 0;">
                     <span class="badge bg-info mb-2 px-2 px-md-3 py-1 py-md-2 fs-7 fs-md-6 text-dark">SẮP CHIẾU</span>
-                    <h1 class="display-6 display-md-4 fw-bold text-light text-shadow mb-1">DUNE: PART TWO</h1>
+                    <h1 class="display-6 display-md-4 fw-bold text-dark text-shadow mb-1">DUNE: PART TWO</h1>
                     <p class="fs-6 fs-md-5 text-secondary d-none d-sm-block">Hành trình vĩ đại trên hành tinh cát. Trải nghiệm định dạng IMAX.</p>
                     <div class="mt-2 mt-md-3">
                         <button class="btn btn-outline-info btn-sm btn-md-lg rounded-pill px-3 px-md-4"><i class="bi bi-info-circle me-1 me-md-2"></i>Tìm Hiểu Thêm</button>
@@ -45,7 +45,7 @@
                 <div class="carousel-caption text-start bottom-0 pb-4 pb-md-5 ps-3 ps-md-4 w-100" style="background: linear-gradient(transparent, rgba(0,0,0,0.95)); left: 0; right: 0;">
                     <span class="badge bg-danger mb-2 px-2 px-md-3 py-1 py-md-2 fs-7 fs-md-6">ĐANG CHIẾU</span>
                     <h1 class="display-6 display-md-4 fw-bold text-warning text-shadow mb-1">SPIDER-MAN: NO WAY HOME</h1>
-                    <p class="fs-6 fs-md-5 text-light d-none d-sm-block">Đa vũ trụ mở ra. Đừng bỏ lỡ siêu phẩm Marvel.</p>
+                    <p class="fs-6 fs-md-5 text-dark d-none d-sm-block">Đa vũ trụ mở ra. Đừng bỏ lỡ siêu phẩm Marvel.</p>
                     <div class="mt-2 mt-md-3">
                         <a href="/movies/2" class="btn btn-warning btn-sm btn-md-lg fw-bold px-3 px-md-4 rounded-pill me-2"><i class="bi bi-ticket-perforated me-1 me-md-2"></i>Đặt Vé Ngay</a>
                     </div>
@@ -344,13 +344,13 @@
             <h2 class="display-5 fw-bold text-dark mb-3" data-aos="fade-right">CinemaX App</h2>
             <p class="fs-5 text-secondary mb-4" data-aos="fade-right" data-aos-delay="100">Đặt vé nhanh hơn, nhận nhiều ưu đãi độc quyền chỉ có trên ứng dụng điện thoại. Tải ngay!</p>
             <div class="d-flex justify-content-center justify-content-md-start gap-3" data-aos="fade-right" data-aos-delay="200">
-                <button class="btn btn-outline-dark rounded-pill px-4 py-2 fs-5"><i class="bi bi-apple me-2"></i>App Store</button>
-                <button class="btn btn-outline-dark rounded-pill px-4 py-2 fs-5"><i class="bi bi-google-play me-2"></i>Google Play</button>
+                <a href="/app" class="btn btn-outline-dark rounded-pill px-4 py-2 fs-5 text-decoration-none"><i class="bi bi-apple me-2"></i>App Store</a>
+                <a href="/app" class="btn btn-outline-dark rounded-pill px-4 py-2 fs-5 text-decoration-none"><i class="bi bi-google-play me-2"></i>Google Play</a>
             </div>
         </div>
         <div class="col-md-6 text-center" data-aos="fade-left" data-aos-delay="300">
             <!-- Mockup Smartphone Image Placeholder -->
-            <img src="https://placehold.co/300x500/000/fff?text=CinemaX+App+UI" class="img-fluid rounded-4 shadow-lg border border-secondary" style="transform: rotate(-10deg); max-height: 400px;" alt="App Mockup">
+            <img src="https://placehold.co/300x500/000/fff?text=CinemaX+App+UI" class="img-fluid rounded-4 shadow-lg border border-light" style="transform: rotate(-10deg); max-height: 400px;" alt="App Mockup">
         </div>
     </div>
     <!-- Background Decor -->
@@ -471,25 +471,25 @@
         <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="100">
             <div class="card bg-white border-0 rounded-4 overflow-hidden h-100 text-center py-5 group-hover position-relative" style="background: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=400') center/cover;">
                 <div class="position-absolute w-100 h-100 top-0 start-0" style="background: rgba(0,0,0,0.6);"></div>
-                <h4 class="text-light fw-bold mb-0 position-relative z-1">HÀNH ĐỘNG</h4>
+                <h4 class="text-dark fw-bold mb-0 position-relative z-1">HÀNH ĐỘNG</h4>
             </div>
         </div>
         <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="200">
             <div class="card bg-white border-0 rounded-4 overflow-hidden h-100 text-center py-5 group-hover position-relative" style="background: url('https://images.unsplash.com/photo-1509281373149-e957c6296406?q=80&w=400') center/cover;">
                 <div class="position-absolute w-100 h-100 top-0 start-0" style="background: rgba(0,0,0,0.6);"></div>
-                <h4 class="text-light fw-bold mb-0 position-relative z-1">KHOA HỌC</h4>
+                <h4 class="text-dark fw-bold mb-0 position-relative z-1">KHOA HỌC</h4>
             </div>
         </div>
         <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="300">
             <div class="card bg-white border-0 rounded-4 overflow-hidden h-100 text-center py-5 group-hover position-relative" style="background: url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=400') center/cover;">
                 <div class="position-absolute w-100 h-100 top-0 start-0" style="background: rgba(0,0,0,0.6);"></div>
-                <h4 class="text-light fw-bold mb-0 position-relative z-1">TÌNH CẢM</h4>
+                <h4 class="text-dark fw-bold mb-0 position-relative z-1">TÌNH CẢM</h4>
             </div>
         </div>
         <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="400">
             <div class="card bg-white border-0 rounded-4 overflow-hidden h-100 text-center py-5 group-hover position-relative" style="background: url('https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=400') center/cover;">
                 <div class="position-absolute w-100 h-100 top-0 start-0" style="background: rgba(0,0,0,0.6);"></div>
-                <h4 class="text-light fw-bold mb-0 position-relative z-1">KINH DỊ</h4>
+                <h4 class="text-dark fw-bold mb-0 position-relative z-1">KINH DỊ</h4>
             </div>
         </div>
     </div>
@@ -517,7 +517,7 @@
                     <div class="bg-light rounded-circle p-3 me-3"><i class="bi bi-building text-warning fs-3"></i></div>
                     <div>
                         <h5 class="text-dark fw-bold mb-1">CinemaX Landmark</h5>
-                        <span class="badge bg-secondary text-light">TP. Hồ Chí Minh</span>
+                        <span class="badge bg-secondary text-dark">TP. Hồ Chí Minh</span>
                     </div>
                 </div>
                 <p class="text-secondary small mb-4"><i class="bi bi-geo-alt-fill me-1 text-danger"></i>Tầng 8, Vincom Landmark 81, 720A Điện Biên Phủ, Quận Bình Thạnh.</p>
@@ -530,7 +530,7 @@
                     <div class="bg-light rounded-circle p-3 me-3"><i class="bi bi-building text-warning fs-3"></i></div>
                     <div>
                         <h5 class="text-dark fw-bold mb-1">CinemaX Lotte</h5>
-                        <span class="badge bg-secondary text-light">Hà Nội</span>
+                        <span class="badge bg-secondary text-dark">Hà Nội</span>
                     </div>
                 </div>
                 <p class="text-secondary small mb-4"><i class="bi bi-geo-alt-fill me-1 text-danger"></i>Tầng 5, Lotte Center, 54 Liễu Giai, Quận Ba Đình.</p>
@@ -543,7 +543,7 @@
                     <div class="bg-light rounded-circle p-3 me-3"><i class="bi bi-building text-warning fs-3"></i></div>
                     <div>
                         <h5 class="text-dark fw-bold mb-1">CinemaX Vincom</h5>
-                        <span class="badge bg-secondary text-light">Đà Nẵng</span>
+                        <span class="badge bg-secondary text-dark">Đà Nẵng</span>
                     </div>
                 </div>
                 <p class="text-secondary small mb-4"><i class="bi bi-geo-alt-fill me-1 text-danger"></i>Tầng 4, Vincom Center, 910A Ngô Quyền, Sơn Trà.</p>
@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <div class="bg-success text-white rounded-circle p-3 me-3"><i class="bi bi-building fs-3"></i></div>
                                                     <div>
                                                         <h5 class="text-dark fw-bold mb-1">${cinema.name}</h5>
-                                                        <span class="badge bg-secondary text-light">${cinema.province}</span>
+                                                        <span class="badge bg-secondary text-dark">${cinema.province}</span>
                                                         ${distanceHtml}
                                                     </div>
                                                 </div>
@@ -649,10 +649,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0,0,0,0.85);"></div>
     <div class="position-relative z-1 p-4">
         <h2 class="fw-bold text-warning mb-3"><i class="bi bi-envelope-paper-heart me-2"></i>Đừng Bỏ Lỡ Ưu Đãi!</h2>
-        <p class="text-light fs-5 mb-4">Đăng ký nhận email để cập nhật lịch chiếu sớm nhất và mã giảm giá độc quyền.</p>
+        <p class="text-dark fs-5 mb-4">Đăng ký nhận email để cập nhật lịch chiếu sớm nhất và mã giảm giá độc quyền.</p>
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <div class="input-group input-group-lg border border-secondary rounded-pill overflow-hidden shadow">
+                <div class="input-group input-group-lg border border-light rounded-pill overflow-hidden shadow">
                     <span class="input-group-text bg-white border-0 text-dark"><i class="bi bi-envelope"></i></span>
                     <input type="email" class="form-control bg-white border-0 text-dark shadow-none" placeholder="Nhập email của bạn..." style="outline: none;">
                     <button class="btn btn-warning fw-bold px-4">ĐĂNG KÝ</button>
@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- #11 Đối Tác Thanh Toán (Partners) -->
-<div class="mb-5 py-4 border-top border-bottom border-secondary text-center" data-aos="fade-in">
+<div class="mb-5 py-4 border-top border-bottom border-light text-center" data-aos="fade-in">
     <h6 class="text-secondary text-uppercase mb-4 fw-bold">Đối Tác Đồng Hành</h6>
     <div class="d-flex justify-content-center gap-3 flex-wrap align-items-center opacity-75">
         <div class="payment-logo" data-aos="zoom-in" data-aos-delay="100">VISA</div>
@@ -782,6 +782,34 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: 700;
 }
 </style>
+<!-- Scale on Scroll Section -->
+<div class="scroll-zoom-wrapper mt-5" style="height: 250vh; position: relative; width: 100vw; margin-left: calc(-50vw + 50%); overflow-x: hidden;">
+    <div class="sticky-top" style="height: 100vh; overflow: hidden; position: sticky; top: 0; display: flex; align-items: center; justify-content: center; background: #000;">
+        <img src="https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=1920&auto=format&fit=crop" id="zoomImage" style="width: 100vw; height: 100vh; object-fit: cover; transform-origin: center center; transition: transform 0.1s ease-out; filter: brightness(0.6);" alt="Featured">
+        <div class="position-absolute text-center text-white p-4 w-100" style="z-index: 10; pointer-events: none;">
+            <span class="badge bg-warning text-dark fs-5 px-4 py-2 mb-3 rounded-pill shadow-lg">TIN ĐỘC QUYỀN</span>
+            <h1 class="display-3 fw-bold mb-4" style="text-shadow: 2px 2px 20px rgba(0,0,0,0.9);">VŨ TRỤ ĐIỆN ẢNH MỞ RỘNG</h1>
+            <p class="lead fs-4 fw-light mx-auto" style="max-width: 800px; text-shadow: 1px 1px 10px rgba(0,0,0,0.8);">Cuộn chuột xuống để tiến vào tâm điểm của kỷ nguyên giải trí mới.</p>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('scroll', function() {
+    const wrapper = document.querySelector('.scroll-zoom-wrapper');
+    if(!wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
+    let scrollPercent = 0;
+    if (rect.top <= 0) {
+        const maxScroll = rect.height - window.innerHeight;
+        scrollPercent = Math.abs(rect.top) / maxScroll;
+        if (scrollPercent > 1) scrollPercent = 1;
+    }
+    const scale = 1 + (scrollPercent * 1.0);
+    const img = document.getElementById('zoomImage');
+    if(img) img.style.transform = 'scale(' + scale + ')';
+});
+</script>
+
 
 
 

@@ -3,24 +3,24 @@
 ?>
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="h3 fw-bold text-light mb-3">Danh Sách Phim</h1>
+        <h1 class="h3 fw-bold text-dark mb-3">Danh Sách Phim</h1>
         
         <!-- Filters panel -->
-        <div class="card bg-black border border-secondary p-3 rounded shadow-sm">
+        <div class="card bg-white border border-light p-3 rounded shadow-sm">
             <div class="row align-items-center g-3">
                 <!-- Status Tab buttons -->
                 <div class="col-md-6">
                     <div class="btn-group shadow-sm" role="group">
                         <a href="/movies?status=now_showing<?= $genre ? '&genre='.urlencode($genre) : '' ?>" 
-                           class="btn btn-sm <?= $status === 'now_showing' ? 'btn-warning fw-bold' : 'btn-outline-secondary' ?>">
+                           class="btn btn-sm <?= $status === 'now_showing' ? 'btn-warning fw-bold' : 'btn-outline-dark' ?>">
                             <i class="bi bi-play-fill"></i> Đang chiếu
                         </a>
                         <a href="/movies?status=coming_soon<?= $genre ? '&genre='.urlencode($genre) : '' ?>" 
-                           class="btn btn-sm <?= $status === 'coming_soon' ? 'btn-warning fw-bold' : 'btn-outline-secondary' ?>">
+                           class="btn btn-sm <?= $status === 'coming_soon' ? 'btn-warning fw-bold' : 'btn-outline-dark' ?>">
                             <i class="bi bi-calendar-event"></i> Sắp chiếu
                         </a>
                         <a href="/movies?status=ended<?= $genre ? '&genre='.urlencode($genre) : '' ?>" 
-                           class="btn btn-sm <?= $status === 'ended' ? 'btn-warning fw-bold' : 'btn-outline-secondary' ?>">
+                           class="btn btn-sm <?= $status === 'ended' ? 'btn-warning fw-bold' : 'btn-outline-dark' ?>">
                             <i class="bi bi-stop-fill"></i> Đã dừng chiếu
                         </a>
                     </div>
@@ -33,7 +33,7 @@
                         <button class="btn btn-sm btn-outline-warning dropdown-toggle fw-semibold" type="button" data-bs-toggle="dropdown">
                             <?= $genre ?: 'Tất cả' ?>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-secondary bg-black shadow">
+                        <ul class="dropdown-menu dropdown-menu-end border-light bg-white shadow">
                             <li><a class="dropdown-item" href="/movies?status=<?= $status ?>">Tất cả</a></li>
                             <li><a class="dropdown-item" href="/movies?status=<?= $status ?>&genre=<?= urlencode('Hành động') ?>">Hành động</a></li>
                             <li><a class="dropdown-item" href="/movies?status=<?= $status ?>&genre=<?= urlencode('Hài') ?>">Hài</a></li>
@@ -58,7 +58,7 @@
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4">
         <?php foreach ($movies as $movie): ?>
             <div class="col">
-                <div class="card bg-black border border-secondary h-100 shadow movie-card"
+                <div class="card bg-white border border-light h-100 shadow movie-card"
                      onclick="location.href='/movies/<?= $movie->id ?>'">
                     <div class="position-relative">
                         <img src="<?= htmlspecialchars($movie->posterUrl ?: 'https://placehold.co/400x600/111/fff?text=No+Poster') ?>"
@@ -72,8 +72,8 @@
                             </span>
                         <?php endif; ?>
                     </div>
-                    <div class="card-body p-3 bg-black">
-                        <h6 class="card-title text-light mb-2 text-truncate fw-bold">
+                    <div class="card-body p-3 bg-white">
+                        <h6 class="card-title text-dark mb-2 text-truncate fw-bold">
                             <?= htmlspecialchars($movie->title) ?>
                         </h6>
                         <div class="d-flex justify-content-between align-items-center">

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // views/layouts/main.php
 ?>
 <!DOCTYPE html>
@@ -45,3 +45,4 @@
     <script src="/assets/js/app.js?v=<?= time() ?>"></script>
 </body>
 </html>
+

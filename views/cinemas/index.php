@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // views/cinemas/index.php
 use App\Core\Session;
 ?>
@@ -8,7 +8,7 @@ use App\Core\Session;
     <h1 class="display-5 fw-bold text-warning mb-3">
         <i class="bi bi-geo-alt-fill me-2"></i>Hệ Thống Rạp CinemaX
     </h1>
-    <p class="lead text-light opacity-75" data-aos="fade-up" data-aos-delay="200">
+    <p class="lead text-dark opacity-75" data-aos="fade-up" data-aos-delay="200">
         Trải nghiệm điện ảnh đỉnh cao tại <strong class="text-warning"><?= count($cinemas) ?></strong> rạp trên toàn quốc
     </p>
 </div>
@@ -33,7 +33,7 @@ use App\Core\Session;
 <div class="row g-4">
     <?php foreach ($cinemas as $index => $cinema): ?>
         <div class="col-md-6 col-lg-4" data-aos="zoom-in-up" data-aos-delay="<?= ($index % 3) * 100 ?>">
-            <div class="card cinema-card bg-dark border-0 h-100 overflow-hidden shadow-lg hover-shadow transition-all"
+            <div class="card cinema-card bg-white shadow-sm border-0 h-100 overflow-hidden shadow-lg hover-shadow transition-all"
                  onclick="location.href='/cinemas/<?= htmlspecialchars($cinema->slug) ?>'">
 
                 <!-- Ảnh rạp -->
@@ -102,7 +102,7 @@ use App\Core\Session;
                     <?php endif; ?>
                 </div>
 
-                <div class="card-footer bg-transparent border-top border-secondary p-3">
+                <div class="card-footer bg-transparent border-top border-light p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <a href="/cinemas/<?= htmlspecialchars($cinema->slug) ?>"
                            class="btn btn-sm btn-outline-warning rounded-pill" onclick="event.stopPropagation();">
@@ -125,3 +125,56 @@ use App\Core\Session;
         <p class="text-secondary mt-3 fs-5">Chưa có rạp nào trong khu vực này</p>
     </div>
 <?php endif; ?>
+
+
+<!-- Bảng Giá Vé Tham Khảo -->
+<div class="mt-5 pt-5 border-top border-light" data-aos="fade-up">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark mb-3"><i class="bi bi-ticket-perforated text-warning me-2"></i>Bảng Giá Vé Tham Khảo</h2>
+        <p class="text-secondary">Giá vé có thể thay đổi tùy theo rạp, khung giờ và ngày lễ tết.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+        <!-- 2D Ticket -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-light bg-white shadow-sm h-100 text-center hover-shadow transition-all">
+                <div class="card-header bg-light border-light py-4"><h4 class="fw-bold text-dark mb-0">Vé 2D Tiêu Chuẩn</h4></div>
+                <div class="card-body py-4">
+                    <h2 class="display-5 fw-bold text-warning mb-4">65.000<small class="fs-5 text-secondary">₫</small></h2>
+                    <ul class="list-unstyled text-secondary text-start mx-auto" style="max-width: 200px;">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Thứ 2 - Thứ 5</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Trước 17:00</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Ghế thường/VIP</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- 3D Ticket -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-warning bg-white shadow-lg h-100 text-center position-relative" style="transform: scale(1.05); z-index: 2;">
+                <div class="position-absolute top-0 start-50 translate-middle"><span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">PHỔ BIẾN NHẤT</span></div>
+                <div class="card-header bg-warning py-4 border-warning"><h4 class="fw-bold text-dark mb-0">Vé Cuối Tuần / Lễ</h4></div>
+                <div class="card-body py-4">
+                    <h2 class="display-5 fw-bold text-dark mb-4">95.000<small class="fs-5 text-secondary">₫</small></h2>
+                    <ul class="list-unstyled text-secondary text-start mx-auto" style="max-width: 200px;">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Thứ 6 - Chủ Nhật</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Ngày Lễ / Tết</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Ghế thường/VIP</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Quy định rạp chiếu phim -->
+<div class="mt-5 pt-5 mb-5 border-top border-light" data-aos="fade-up">
+    <div class="row align-items-center">
+        <div class="col-lg-6 mb-4 mb-lg-0"><img src="https://images.unsplash.com/photo-1595769816263-9b910be24d5f?q=80&w=800&auto=format&fit=crop" class="img-fluid rounded-4 shadow-lg" alt="Cinema Rules"></div>
+        <div class="col-lg-6 px-lg-5">
+            <h2 class="fw-bold text-dark mb-4">Quy Định Chung Tại Rạp</h2>
+            <div class="d-flex mb-4">
+                <div class="me-3"><div class="bg-light text-warning rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;"><i class="bi bi-camera-video-off fs-4"></i></div></div>
+                <div><h5 class="fw-bold text-dark mb-1">Không Quay Phim / Chụp Ảnh</h5><p class="text-secondary mb-0">Nghiêm cấm mọi hành vi ghi âm, ghi hình trong phòng chiếu.</p></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -71,4 +71,8 @@ class HomeController extends BaseController
             'pageTitle'  => 'CinemaX — Đặt vé trực tuyến',
         ]);
     }
+
+    public function app() {
+        $this->render('home.app', ['title' => 'CinemaX App']);
+    }
 }

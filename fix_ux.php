@@ -1,134 +1,15 @@
-﻿<?php // views/promotions/index.php ?>
-<div class="promotions-hero text-center py-5 mb-5" data-aos="fade-down" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 16px; border: 1px solid #dee2e6;">
-    <h1 class="display-5 fw-bold text-dark"><i class="bi bi-percent text-warning me-2"></i>Ưu đãi & Khuyến mãi</h1>
-    <p class="lead text-secondary">Đừng bỏ lỡ những deal hot nhất từ CinemaX</p>
-</div>
+﻿<?php
+$f = '/var/www/html/views/promotions/index.php';
+$c = file_get_contents($f);
 
-<?php if (empty($promotions)): ?>
-    <div class="text-center py-5">
-        <i class="bi bi-tag fs-1 text-secondary opacity-50"></i>
-        <p class="text-secondary mt-3 fs-5">Chưa có khuyến mãi nào</p>
-        <p class="text-secondary">Quay lại sau để xem ưu đãi mới nhất!</p>
-    </div>
-<?php else: ?>
-    <h4 class="text-warning border-start border-warning ps-3 mb-4" data-aos="fade-right"><i class="bi bi-ticket-detailed me-2"></i>Mã giảm giá đang hoạt động</h4>
-    <div class="row g-4">
-        <?php foreach ($promotions as $index => $promo): ?>
-            <div class="col-md-6 col-lg-4" data-aos="zoom-in" data-aos-delay="<?= ($index % 3) * 100 ?>">
-                <div class="card promo-card bg-white shadow-sm border-0 overflow-hidden h-100 hover-shadow transition-all">
-                    <img src="<?= htmlspecialchars($promo->image_url ?? 'https://placehold.co/600x300/1a1a3e/fff?text=CinemaX+Promo') ?>" 
-                         class="card-img-top transition-all" 
-                         style="height: 150px; object-fit: cover;" 
-                         alt="<?= htmlspecialchars($promo->code) ?>">
-                    <div class="card-body p-4 position-relative">
-                        <div class="promo-ribbon">
-                            <?= ($promo->discount_type ?? 'percent') === 'percent' ? ($promo->discount_value ?? 0) . '%' : 'DEAL' ?>
-                        </div>
-                        <h5 class="text-warning fw-bold mb-2"><?= htmlspecialchars($promo->code) ?></h5>
-                        <p class="text-secondary small mb-3">
-                            <?php if (($promo->discount_type ?? 'percent') === 'percent'): ?>
-                                Giảm <?= htmlspecialchars($promo->discount_value) ?>% giá vé
-                            <?php else: ?>
-                                Giảm <?= number_format($promo->discount_value ?? 0, 0, ',', '.') ?>₫
-                            <?php endif; ?>
-                        </p>
-                        <div class="promo-code-box d-flex align-items-center gap-2 mb-3">
-                            <code class="text-warning fs-5 fw-bold"><?= htmlspecialchars($promo->code) ?></code>
-                            <button class="btn btn-sm btn-outline-warning rounded-pill" onclick="copyPromoCode('<?= htmlspecialchars($promo->code) ?>')">
-                                <i class="bi bi-clipboard"></i>
-                            </button>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <?php if ($promo->expires_at): ?>
-                                <small class="text-secondary"><i class="bi bi-calendar me-1"></i>HSD: <?= date('d/m/Y', strtotime($promo->expires_at)) ?></small>
-                            <?php endif; ?>
-                            <?php if ($promo->max_uses): ?>
-                                <small class="text-secondary"><i class="bi bi-people me-1"></i>Còn <?= max(0, $promo->max_uses - ($promo->used_count ?? 0)) ?> lượt</small>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+// We need to remove the previous horizontal scroll container
+$c = preg_replace('/<!-- Horizontal Scroll Section -->.*<\/script>/is', '', $c);
 
-<script>
-function copyPromoCode(code) {
-    navigator.clipboard.writeText(code).then(() => {
-        const toast = document.createElement('div');
-        toast.className = 'position-fixed bottom-0 end-0 m-3 p-3 bg-success text-white rounded-3 shadow-lg';
-        toast.style.zIndex = '9999';
-        toast.innerHTML = '<i class="bi bi-check-circle me-1"></i>Đã copy mã: ' + code;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
-    });
-}
-</script>
-
-<!-- Parallax Section -->
-<div class="parallax-section mt-5" style="
-    background-image: url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1920&auto=format&fit=crop');
-    background-attachment: fixed;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    height: 60vh;
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    margin-bottom: 3rem;
-">
-    <!-- Overlay -->
-    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0, 0, 0, 0.6);"></div>
-    
-    <!-- Content inside Parallax -->
-    <div class="position-absolute top-50 start-50 translate-middle text-center w-100 px-3">
-        <h2 class="display-4 fw-bold text-warning mb-3" style="text-shadow: 2px 2px 10px rgba(0,0,0,0.8);">TRỞ THÀNH THÀNH VIÊN VIP</h2>
-        <p class="lead text-white mx-auto mb-4" style="max-width: 600px; text-shadow: 1px 1px 5px rgba(0,0,0,0.8);">
-            Đăng ký thành viên CinemaX ngay hôm nay để nhận thẻ cứng độc quyền, tích điểm mỗi lần xem phim và tận hưởng vô vàn ưu đãi đặc quyền!
-        </p>
-        <button class="btn btn-warning btn-lg rounded-pill px-5 fw-bold shadow-lg">ĐĂNG KÝ NGAY</button>
-    </div>
-</div>
-
-<div class="parallax-section" style="
-    background-image: url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1920&auto=format&fit=crop');
-    background-attachment: fixed;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    height: 60vh;
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    margin-bottom: 3rem;
-">
-    <!-- Overlay -->
-    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%);"></div>
-    
-    <!-- Content inside Parallax -->
-    <div class="position-absolute top-50 start-0 translate-middle-y px-md-5 px-3 w-100 text-start">
-        <div style="max-width: 600px;">
-            <span class="badge bg-danger fs-6 mb-3 px-3 py-2 rounded-pill">SỰ KIỆN SẮP DIỄN RA</span>
-            <h2 class="display-4 fw-bold text-white mb-3" style="text-shadow: 2px 2px 10px rgba(0,0,0,0.8);">HỌP BÁO RA MẮT PHIM</h2>
-            <p class="lead text-light mb-4" style="text-shadow: 1px 1px 5px rgba(0,0,0,0.8);">
-                Cơ hội giao lưu trực tiếp với dàn sao hạng A Hollywood tại cụm rạp CinemaX. Mua vé suất chiếu sớm để nhận thiệp mời đặc biệt.
-            </p>
-            <button class="btn btn-outline-light btn-lg rounded-pill px-5 fw-bold">TÌM HIỂU THÊM</button>
-        </div>
-    </div>
-</div>
-
-
-
-
+$html = <<<HTML
 <!-- Horizontal Scroll Section -->
 <style>
 .horizontal-scroll-container {
     position: relative;
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
 }
 .horizontal-sticky {
     position: sticky;
@@ -324,3 +205,7 @@ document.addEventListener('scroll', function() {
     }
 });
 </script>
+HTML;
+
+file_put_contents($f, $c . "\n" . $html);
+echo "Fixed UX";

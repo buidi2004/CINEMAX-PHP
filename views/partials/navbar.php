@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // views/partials/navbar.php
 use App\Core\Session;
 
@@ -111,4 +111,5 @@ $currentRole   = Session::get('user_role');
         </div>
     </div>
 </nav>
+
 

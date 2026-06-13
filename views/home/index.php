@@ -11,43 +11,43 @@
     <div class="carousel-inner rounded-4 overflow-hidden" style="border: 1px solid #222244;">
         <!-- Slide 1 -->
         <div class="carousel-item active">
-            <div class="position-relative" style="height: 500px;">
+            <div class="position-relative hero-slide">
                 <img src="/assets/images/slide1.jpg" class="w-100 h-100" style="object-fit: cover; filter: brightness(0.6);" alt="Slide 1" onerror="this.src='https://placehold.co/1200x500/1a1a3e/fff?text=AVENGERS:+ENDGAME'">
-                <div class="carousel-caption d-none d-md-block text-start bottom-0 pb-5 ps-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.9)); left: 0; right: 0;">
-                    <span class="badge bg-danger mb-2 px-3 py-2 fs-6" data-aos="fade-up" data-aos-delay="200">ĐANG CHIẾU</span>
-                    <h1 class="display-4 fw-bold text-warning text-shadow" data-aos="fade-up" data-aos-delay="400">AVENGERS: ENDGAME</h1>
-                    <p class="fs-5 text-light" data-aos="fade-up" data-aos-delay="600">Trận chiến cuối cùng của các siêu anh hùng. Khởi chiếu 26/04/2026.</p>
-                    <div class="mt-3" data-aos="fade-up" data-aos-delay="800">
-                        <a href="/movies/1" class="btn btn-warning btn-lg fw-bold px-4 rounded-pill me-2"><i class="bi bi-ticket-perforated me-2"></i>Đặt Vé Ngay</a>
-                        <button class="btn btn-outline-light btn-lg rounded-pill px-4"><i class="bi bi-play-circle me-2"></i>Xem Trailer</button>
+                <div class="carousel-caption text-start bottom-0 pb-4 pb-md-5 ps-3 ps-md-4 w-100" style="background: linear-gradient(transparent, rgba(0,0,0,0.95)); left: 0; right: 0;">
+                    <span class="badge bg-danger mb-2 px-2 px-md-3 py-1 py-md-2 fs-7 fs-md-6" data-aos="fade-up" data-aos-delay="200">ĐANG CHIẾU</span>
+                    <h1 class="display-6 display-md-4 fw-bold text-warning text-shadow mb-1" data-aos="fade-up" data-aos-delay="400">AVENGERS: ENDGAME</h1>
+                    <p class="fs-6 fs-md-5 text-light d-none d-sm-block" data-aos="fade-up" data-aos-delay="600">Trận chiến cuối cùng của các siêu anh hùng. Khởi chiếu 26/04/2026.</p>
+                    <div class="mt-2 mt-md-3" data-aos="fade-up" data-aos-delay="800">
+                        <a href="/movies/1" class="btn btn-warning btn-sm btn-md-lg fw-bold px-3 px-md-4 rounded-pill me-2"><i class="bi bi-ticket-perforated me-1 me-md-2"></i>Đặt Vé Ngay</a>
+                        <button class="btn btn-outline-light btn-sm btn-md-lg rounded-pill px-3 px-md-4"><i class="bi bi-play-circle me-1 me-md-2"></i>Xem Trailer</button>
                     </div>
                 </div>
             </div>
         </div>
         <!-- Slide 2 -->
         <div class="carousel-item">
-            <div class="position-relative" style="height: 500px;">
+            <div class="position-relative hero-slide">
                 <img src="/assets/images/slide2.jpg" class="w-100 h-100" style="object-fit: cover; filter: brightness(0.6);" alt="Slide 2" onerror="this.src='https://placehold.co/1200x500/0a0a14/fff?text=DUNE:+PART+TWO'">
-                <div class="carousel-caption d-none d-md-block text-start bottom-0 pb-5 ps-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.9)); left: 0; right: 0;">
-                    <span class="badge bg-info mb-2 px-3 py-2 fs-6 text-dark">SẮP CHIẾU</span>
-                    <h1 class="display-4 fw-bold text-light text-shadow">DUNE: PART TWO</h1>
-                    <p class="fs-5 text-secondary">Hành trình vĩ đại trên hành tinh cát. Trải nghiệm định dạng IMAX.</p>
-                    <div class="mt-3">
-                        <button class="btn btn-outline-info btn-lg rounded-pill px-4"><i class="bi bi-info-circle me-2"></i>Tìm Hiểu Thêm</button>
+                <div class="carousel-caption text-start bottom-0 pb-4 pb-md-5 ps-3 ps-md-4 w-100" style="background: linear-gradient(transparent, rgba(0,0,0,0.95)); left: 0; right: 0;">
+                    <span class="badge bg-info mb-2 px-2 px-md-3 py-1 py-md-2 fs-7 fs-md-6 text-dark">SẮP CHIẾU</span>
+                    <h1 class="display-6 display-md-4 fw-bold text-light text-shadow mb-1">DUNE: PART TWO</h1>
+                    <p class="fs-6 fs-md-5 text-secondary d-none d-sm-block">Hành trình vĩ đại trên hành tinh cát. Trải nghiệm định dạng IMAX.</p>
+                    <div class="mt-2 mt-md-3">
+                        <button class="btn btn-outline-info btn-sm btn-md-lg rounded-pill px-3 px-md-4"><i class="bi bi-info-circle me-1 me-md-2"></i>Tìm Hiểu Thêm</button>
                     </div>
                 </div>
             </div>
         </div>
         <!-- Slide 3 -->
         <div class="carousel-item">
-            <div class="position-relative" style="height: 500px;">
+            <div class="position-relative hero-slide">
                 <img src="/assets/images/slide3.jpg" class="w-100 h-100" style="object-fit: cover; filter: brightness(0.6);" alt="Slide 3" onerror="this.src='https://placehold.co/1200x500/16213e/fff?text=SPIDER-MAN'">
-                <div class="carousel-caption d-none d-md-block text-start bottom-0 pb-5 ps-4" style="background: linear-gradient(transparent, rgba(0,0,0,0.9)); left: 0; right: 0;">
-                    <span class="badge bg-danger mb-2 px-3 py-2 fs-6">ĐANG CHIẾU</span>
-                    <h1 class="display-4 fw-bold text-warning text-shadow">SPIDER-MAN: NO WAY HOME</h1>
-                    <p class="fs-5 text-light">Đa vũ trụ mở ra. Đừng bỏ lỡ siêu phẩm Marvel.</p>
-                    <div class="mt-3">
-                        <a href="/movies/2" class="btn btn-warning btn-lg fw-bold px-4 rounded-pill me-2"><i class="bi bi-ticket-perforated me-2"></i>Đặt Vé Ngay</a>
+                <div class="carousel-caption text-start bottom-0 pb-4 pb-md-5 ps-3 ps-md-4 w-100" style="background: linear-gradient(transparent, rgba(0,0,0,0.95)); left: 0; right: 0;">
+                    <span class="badge bg-danger mb-2 px-2 px-md-3 py-1 py-md-2 fs-7 fs-md-6">ĐANG CHIẾU</span>
+                    <h1 class="display-6 display-md-4 fw-bold text-warning text-shadow mb-1">SPIDER-MAN: NO WAY HOME</h1>
+                    <p class="fs-6 fs-md-5 text-light d-none d-sm-block">Đa vũ trụ mở ra. Đừng bỏ lỡ siêu phẩm Marvel.</p>
+                    <div class="mt-2 mt-md-3">
+                        <a href="/movies/2" class="btn btn-warning btn-sm btn-md-lg fw-bold px-3 px-md-4 rounded-pill me-2"><i class="bi bi-ticket-perforated me-1 me-md-2"></i>Đặt Vé Ngay</a>
                     </div>
                 </div>
             </div>
@@ -497,6 +497,14 @@
 
 <style>
 /* Custom local styles for the new elements */
+.hero-slide {
+    height: 500px;
+}
+@media (max-width: 768px) {
+    .hero-slide {
+        height: 350px;
+    }
+}
 .group-hover:hover img {
     transform: scale(1.05);
 }

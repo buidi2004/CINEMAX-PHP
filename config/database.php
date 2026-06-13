@@ -2,11 +2,11 @@
 // config/database.php
 return [
     'driver'   => 'mysql',
-    'host'     => $_ENV['DB_HOST']     ?? 'localhost',
-    'port'     => $_ENV['DB_PORT']     ?? '3306',
-    'dbname'   => $_ENV['DB_NAME']     ?? 'cinema_db',
-    'username' => $_ENV['DB_USERNAME'] ?? 'root',
-    'password' => $_ENV['DB_PASSWORD'] ?? '',
+    'host'     => getenv('DB_HOST')     ?: 'localhost',
+    'port'     => getenv('DB_PORT')     ?: '3306',
+    'dbname'   => getenv('DB_NAME')     ?: 'cinema_db',
+    'username' => getenv('DB_USERNAME') ?: 'root',
+    'password' => getenv('DB_PASSWORD') ?: '',
     'charset'  => 'utf8mb4',
 ];
 

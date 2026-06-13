@@ -16,6 +16,10 @@ spl_autoload_register(function (string $class) {
     }
 });
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 try {
     $pdo = Database::getInstance();
     echo "<h1>Migration Status</h1>";
@@ -51,6 +55,6 @@ try {
 
     echo "<h2>All migrations completed successfully!</h2>";
     echo "<a href='/'>Go to Homepage</a>";
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     echo "Error running migrations: " . $e->getMessage() . "<br>";
 }

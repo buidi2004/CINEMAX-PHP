@@ -22,9 +22,10 @@ class ImageUploadService
     {
         $this->uploadPath = $uploadPath ?? ROOT_PATH . '/public/uploads/';
         
-        if (!empty($_ENV['CLOUDINARY_URL'])) {
+        $cloudinaryUrl = getenv('CLOUDINARY_URL');
+        if ($cloudinaryUrl) {
             $this->useCloudinary = true;
-            \Cloudinary\Configuration\Configuration::instance($_ENV['CLOUDINARY_URL']);
+            \Cloudinary\Configuration\Configuration::instance($cloudinaryUrl);
         } else {
             // Create upload directory if not exists
             if (!is_dir($this->uploadPath)) {

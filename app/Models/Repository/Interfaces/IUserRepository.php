@@ -12,4 +12,7 @@ interface IUserRepository
     public function getAll(): array;
     public function updateRole(int $id, string $role): bool;
     public function delete(int $id): bool;
+    public function updateResetToken(int $userId, ?string $token, ?string $expiresAt): bool;
+    public function findByResetToken(string $token): ?User;
+    public function updatePassword(int $userId, string $newPasswordHash): bool;
 }

@@ -11,4 +11,6 @@ interface IUserService
     public function getAllUsers(): array;
     public function updateUserRole(int $id, string $role): bool;
     public function deleteUser(int $id): bool;
+    public function createPasswordResetToken(string $email): string;
+    public function resetPasswordWithToken(string $token, string $newPassword): bool;
 }

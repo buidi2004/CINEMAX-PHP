@@ -89,4 +89,46 @@ class UserService implements IUserService
     {
         return $this->userRepo->delete($id);
     }
+
+    public function createPasswordResetToken(string $email): string
+    {
+        $user = $this->userRepo->findByEmail($email);
+        if (!$user) {
+            // We still return a "fake" success or generic message in the controller to prevent email enumeration,
+            // but we throw an exception here if we want to stop. However, for security, throwing BusinessException
+            // might reveal if the email exists or not. Let's throw it, and let AuthController handle it gracefully.
+            throw new BusinessException('Email không tồn tại trong hệ thống.');
+        }
+
+        // Check if OAuth user
+        if ($user->oauthProvider) {
+            throw new BusinessException('Tài khoản này đăng nhập bằng ' . ucfirst($user->oauthProvider) . '. Không thể đổi mật khẩu.');
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+        $this->userRepo->updateResetToken($user->id, $token, $expiresAt);
+
+        return $token;
+    }
+
+    public function resetPasswordWithToken(string $token, string $newPassword): bool
+    {
+        $user = $this->userRepo->findByResetToken($token);
+
+        if (!$user) {
+            throw new BusinessException('Đường dẫn không hợp lệ hoặc đã hết hạn.');
+        }
+
+        if (strtotime($user->resetTokenExpiresAt) < time()) {
+            // Token expired
+            $this->userRepo->updateResetToken($user->id, null, null);
+            throw new BusinessException('Đường dẫn đổi mật khẩu đã hết hạn. Vui lòng yêu cầu lại.');
+        }
+
+        $newPasswordHash = password_hash($newPassword, PASSWORD_BCRYPT);
+        
+        return $this->userRepo->updatePassword($user->id, $newPasswordHash);
+    }
 }

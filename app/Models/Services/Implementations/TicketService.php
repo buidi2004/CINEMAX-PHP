@@ -30,15 +30,22 @@ class TicketService implements ITicketService
             );
         }
 
-        $takenSeats = $this->ticketRepo->getActiveSeats($showtimeId, $seatCodes);
-        if (!empty($takenSeats)) {
-            throw new SeatUnavailableException($takenSeats);
-        }
-
         $pdo = $this->db::getInstance();
         $pdo->beginTransaction();
 
         try {
+            // Pessimistic Lock on showtime to prevent concurrent hold on the same showtime
+            $stmt = $pdo->prepare("SELECT id FROM showtimes WHERE id = ? FOR UPDATE");
+            $stmt->execute([$showtimeId]);
+            if (!$stmt->fetch()) {
+                throw new BusinessException("Suất chiếu không tồn tại.");
+            }
+
+            $takenSeats = $this->ticketRepo->getActiveSeats($showtimeId, $seatCodes);
+            if (!empty($takenSeats)) {
+                throw new SeatUnavailableException($takenSeats);
+            }
+
             $expiryTime = date('Y-m-d H:i:s',
                 strtotime('+' . ValidationRules::HOLD_DURATION_MINUTES . ' minutes')
             );

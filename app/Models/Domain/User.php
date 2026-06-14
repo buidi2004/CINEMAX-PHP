@@ -11,6 +11,8 @@ class User extends BaseModel
     public ?string $oauthProvider;  // 'google' | 'zalo' | NULL
     public ?string $oauthId;        // ID từ OAuth provider
     public ?string $avatarUrl;      // URL ảnh đại diện
+    public ?string $resetToken;
+    public ?string $resetTokenExpiresAt;
     public string  $createdAt;
     public string  $updatedAt;
 

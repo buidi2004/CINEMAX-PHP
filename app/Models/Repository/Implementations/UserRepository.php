@@ -71,4 +71,26 @@ class UserRepository implements IUserRepository
         $stmt->execute([$id]);
         return $stmt->rowCount() > 0;
     }
+
+    public function updateResetToken(int $userId, ?string $token, ?string $expiresAt): bool
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET reset_token = ?, reset_token_expires_at = ? WHERE id = ?');
+        $stmt->execute([$token, $expiresAt, $userId]);
+        return $stmt->rowCount() > 0;
+    }
+
+    public function findByResetToken(string $token): ?User
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE reset_token = ?');
+        $stmt->execute([$token]);
+        $row = $stmt->fetch();
+        return $row ? User::fromArray($row) : null;
+    }
+
+    public function updatePassword(int $userId, string $newPasswordHash): bool
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires_at = NULL WHERE id = ?');
+        $stmt->execute([$newPasswordHash, $userId]);
+        return $stmt->rowCount() > 0;
+    }
 }

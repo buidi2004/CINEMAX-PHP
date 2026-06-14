@@ -62,6 +62,8 @@ $router->post('/contact',                 'ContactController@submit');
 // ── Quên mật khẩu ──────────────────────────────
 $router->get('/forgot-password',          'AuthController@forgotPasswordForm');
 $router->post('/forgot-password',         'AuthController@forgotPassword');
+$router->get('/reset-password',           'AuthController@resetPasswordForm');
+$router->post('/reset-password',          'AuthController@resetPassword');
 
 // ── Trang tĩnh (Static Pages) ────────────────
 $router->get('/careers',                  'PageController@careers');

@@ -25,7 +25,20 @@ class ReviewController extends BaseController
 
         $userId = $this->getCurrentUserId();
 
-        // Check if user has watched the movie before allowing review (optional, but let's just allow for now based on requirement)
+        // Check if user has bought a ticket for this movie
+        $checkStmt = Database::getInstance()->prepare("
+            SELECT t.id 
+            FROM tickets t
+            JOIN showtimes s ON t.showtime_id = s.id
+            WHERE t.user_id = ? AND s.movie_id = ? AND t.status = 'paid'
+            LIMIT 1
+        ");
+        $checkStmt->execute([$userId, $movieId]);
+        if (!$checkStmt->fetch()) {
+            Session::setFlash('error', 'Bạn chỉ có thể đánh giá phim sau khi đã mua vé xem phim này.');
+            $this->redirect('/movies/' . $movieId);
+            return;
+        }
 
         $stmt = Database::getInstance()->prepare("INSERT INTO reviews (user_id, movie_id, rating, comment, status) VALUES (?, ?, ?, ?, 'pending')");
         $stmt->execute([$userId, $movieId, $rating, $comment]);
